@@ -266,7 +266,7 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                     value={form.struggle}
                     onChange={handleInputChange}
                     rows={2}
-                    className="w-full mt-2 px-4 py-3 rounded-xl border border-white/10 bg-white/5 focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-white text-sm placeholder-gray-500"
+                    className="w-full mt-2 px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-slate-800 text-sm placeholder-slate-400 focus:bg-white"
                   />
                 </div>
 
@@ -290,12 +290,12 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="glass p-12 rounded-3xl shadow-2xl border border-white/5 text-center flex flex-col items-center justify-center min-h-[400px] text-white"
+              className="bg-white/80 backdrop-blur-md p-12 rounded-3xl shadow-xl border border-slate-200/60 text-center flex flex-col items-center justify-center min-h-[400px] text-slate-800"
               id="diagnosis-loading"
             >
               <div className="relative mb-6">
                 <div className="w-20 h-20 border-4 border-orange-500/10 border-t-orange-500 rounded-full animate-spin"></div>
-                <Stethoscope className="w-8 h-8 text-orange-400 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-bounce" />
+                <Stethoscope className="w-8 h-8 text-orange-650 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-bounce" />
               </div>
 
               <motion.p
@@ -303,11 +303,11 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="text-lg font-bold text-white max-w-md"
+                className="text-lg font-bold text-slate-800 max-w-md"
               >
                 {loadingMessages[loadingStep]}
               </motion.p>
-              <p className="text-gray-400 text-xs mt-3">نعمل على تحويل معرفتك الطبية لأداة جذب رقمية لا تُقاوم...</p>
+              <p className="text-slate-500 text-xs mt-3">نعمل على تحويل معرفتك الطبية لأداة جذب رقمية لا تُقاوم...</p>
             </motion.div>
           )}
 
