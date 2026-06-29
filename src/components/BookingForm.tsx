@@ -153,13 +153,16 @@ export default function BookingForm({ diagnosisRef, onSuccess }: BookingFormProp
           <motion.div
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-3xl shadow-xl border border-slate-200/60 p-6 sm:p-10 text-slate-800"
+            className="bg-white rounded-[32px] shadow-2xl border border-slate-200/80 p-8 sm:p-12 text-slate-800 relative overflow-hidden"
             id="booking-form-wrapper"
           >
+            {/* Branded Glowing Accent Bar */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-400 via-[#FF5100] to-orange-600" />
+
             {diagnosisRef && (
               <div className="mb-6 p-4 bg-orange-50 border border-orange-200 text-orange-850 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-600" />
-                <span>تم Linking بنجاح مع الروشتة الذكية رقم {diagnosisRef.id}. بيانات الاسم والتخصص معبأة تلقائياً دكتور!</span>
+                <span>تم ربط الروشتة العلاجية رقم {diagnosisRef.id} بنجاح! تم تعبئة البيانات تلقائياً دكتور 🩺</span>
               </div>
             )}
 

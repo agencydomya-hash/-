@@ -114,6 +114,7 @@ export default function ReelsGallery() {
   const [activeSimulatorView, setActiveSimulatorView] = useState<'reels' | 'dm'>('reels');
   const [receivedDM, setReceivedDM] = useState<{ show: boolean; text: string; sender: string; userComment: string } | null>(null);
   const [showToast, setShowToast] = useState<string | null>(null);
+  const [showQualityDetails, setShowQualityDetails] = useState<boolean>(false);
 
   const getLikesCount = (reelId: string) => {
     if (likes[reelId] !== undefined) {
@@ -250,11 +251,8 @@ export default function ReelsGallery() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25 z-1" />
 
-                {/* View Badge */}
-                <div className="flex justify-between items-center z-10">
-                  <span className="px-2.5 py-1 bg-black/45 backdrop-blur-sm rounded-full text-[10px] font-bold text-orange-200">
-                    {reel.views} مشاهدة 👁️
-                  </span>
+                {/* Play icon overlay */}
+                <div className="flex justify-end items-center z-10">
                   <div className="w-7 h-7 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10 text-white group-hover:bg-[#FF5100] transition duration-300">
                     <Play className="w-3 h-3 fill-current ml-0.5" />
                   </div>
@@ -278,15 +276,13 @@ export default function ReelsGallery() {
                 </div>
               </div>
 
-              {/* Quality pillars summary */}
-              <div className="p-5 space-y-3 bg-slate-50 border-t border-slate-100 text-right">
-                <span className="text-[10px] text-orange-600 font-bold block">ميزات الإنتاج في هذا الفيديو:</span>
-                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-semibold">{reel.qualityPillars[0]}</p>
+              {/* Action Button */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 text-right">
                 <button
                   onClick={() => startReelPlayer(reel)}
-                  className="w-full py-2.5 bg-slate-100 hover:bg-orange-500 hover:text-white rounded-xl text-xs font-bold text-slate-700 hover:shadow transition duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full py-2.5 bg-slate-100 hover:bg-[#FF5100] hover:text-white rounded-xl text-xs font-bold text-slate-700 hover:shadow transition duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <span>شغل محاكي التشغيل التفاعلي</span>
+                  <span>تشغيل الفيديو والمحاكاة التفاعلية 📲</span>
                   <Play className="w-3 h-3" />
                 </button>
               </div>
@@ -530,17 +526,29 @@ export default function ReelsGallery() {
                     </p>
                   </div>
 
-                  {/* Quality Checklist */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {selectedReel.qualityPillars.map((pillar, index) => (
-                      <div key={index} className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 flex gap-3 text-right">
-                        <div className="w-6 h-6 rounded-full bg-orange-50 text-orange-650 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 border border-orange-200">
-                          {index + 1}
-                        </div>
-                        <p className="text-xs text-slate-700 font-semibold leading-relaxed">{pillar}</p>
-                      </div>
-                    ))}
+                  {/* Optional Quality Checklist Toggle Button */}
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setShowQualityDetails(!showQualityDetails)}
+                      className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs flex items-center gap-1.5 transition cursor-pointer border border-slate-200"
+                    >
+                      <span>{showQualityDetails ? "إخفاء ميزات الإنتاج 🛠️" : "عرض ميزات إنتاج الفيديو (اختياري) 🛠️"}</span>
+                    </button>
                   </div>
+
+                  {/* Quality Checklist */}
+                  {showQualityDetails && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {selectedReel.qualityPillars.map((pillar, index) => (
+                        <div key={index} className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 flex gap-3 text-right">
+                          <div className="w-6 h-6 rounded-full bg-orange-50 text-orange-650 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 border border-orange-200">
+                            {index + 1}
+                          </div>
+                          <p className="text-xs text-slate-700 font-semibold leading-relaxed">{pillar}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Progressive trackbar and Player control buttons */}
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 space-y-4">

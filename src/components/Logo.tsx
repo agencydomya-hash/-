@@ -12,8 +12,8 @@ interface LogoProps {
 }
 
 export default function Logo({ className = '', iconOnly = false, light = false }: LogoProps) {
-  // Official logo image from domya.net website
-  const logoUrl = "https://domya.net/wp-content/uploads/2022/03/cropped-logo-domya.png";
+  // Upscaled premium logo image
+  const logoUrl = "/uploads/logo_premium.jpg";
 
   return (
     <div className={`flex items-center ${className}`} id="domya-logo">
