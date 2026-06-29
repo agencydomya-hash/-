@@ -240,32 +240,40 @@ export default function ReelsGallery() {
               {/* Cover Card with play overlay */}
               <div 
                 onClick={() => startReelPlayer(reel)}
-                className={`h-64 bg-gradient-to-br ${reel.coverColor} p-6 relative flex flex-col justify-between cursor-pointer group`}
+                className="h-64 p-6 relative flex flex-col justify-between cursor-pointer group overflow-hidden rounded-t-2xl"
               >
+                {/* Real cover image instead of gradient */}
+                <img 
+                  src={reel.coverUrl || "/uploads/1782738201126_473188690_598630842913487_4523441016009157157_n.jpg"} 
+                  className="absolute inset-0 w-full h-full object-cover z-0 transition duration-500 group-hover:scale-105" 
+                  alt={reel.title}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/25 z-1" />
+
                 {/* View Badge */}
-                <div className="flex justify-between items-center">
-                  <span className="px-2.5 py-1 bg-black/30 rounded-full text-[10px] font-bold text-orange-200">
+                <div className="flex justify-between items-center z-10">
+                  <span className="px-2.5 py-1 bg-black/45 backdrop-blur-sm rounded-full text-[10px] font-bold text-orange-200">
                     {reel.views} مشاهدة 👁️
                   </span>
-                  <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center border border-white/10 text-white group-hover:bg-[#FF5100] transition duration-300">
+                  <div className="w-7 h-7 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/10 text-white group-hover:bg-[#FF5100] transition duration-300">
                     <Play className="w-3 h-3 fill-current ml-0.5" />
                   </div>
                 </div>
 
                 {/* Cover graphic details */}
-                <div className="text-center space-y-2 py-4">
+                <div className="text-center space-y-2 py-4 z-10">
                   <div className="text-white/80 font-mono text-xs">{reel.specialty}</div>
                   <h3 className="text-lg font-bold text-white drop-shadow">{reel.title}</h3>
                 </div>
 
                 {/* Doctor details banner */}
-                <div className="flex items-center gap-2 bg-black/25 p-2 rounded-xl border border-white/10">
+                <div className="flex items-center gap-2 bg-black/40 backdrop-blur-sm p-2 rounded-xl border border-white/10 z-10">
                   <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white font-bold text-xs border border-white/20">
                     <User className="w-4 h-4 text-orange-400" />
                   </div>
                   <div className="text-right text-white">
                     <div className="text-xs font-bold">{reel.doctorName}</div>
-                    <div className="text-[9px] text-gray-200">ميديا معتمد من دومايا</div>
+                    <div className="text-[9px] text-gray-250">ميديا معتمد من دومايا</div>
                   </div>
                 </div>
               </div>

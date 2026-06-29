@@ -621,7 +621,7 @@ app.post("/api/submit", async (req, res) => {
     }
 
     // Try to sync with Google Forms / Apps Script Webhook in real-time
-    const targetReceiver = gConfig.receiverEmail || "Contact@domya.net";
+    const targetReceiver = gConfig.receiverEmail || "agencydomya@gmail.com";
     if (gConfig && gConfig.webhookUrl) {
       try {
         console.log(`Triggering webhook sync: ${gConfig.webhookUrl}`);
@@ -641,7 +641,7 @@ app.post("/api/submit", async (req, res) => {
 
     // Send Real Emails using Nodemailer helper
     const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دومايا للتسويق الطبي`;
-    const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دومايا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دومايا\nContact@domya.net | +201090121000`;
+    const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دومايا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دومايا\nagencydomya@gmail.com | +201090121000`;
 
     const agencySubject = `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`;
     const agencyBody = `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`;
@@ -681,7 +681,7 @@ app.post("/api/google/config", (req, res) => {
       accessToken: accessToken || "", 
       spreadsheetId: spreadsheetId || "",
       webhookUrl: webhookUrl || "",
-      receiverEmail: receiverEmail || "Contact@domya.net",
+      receiverEmail: receiverEmail || "agencydomya@gmail.com",
       smtpUser: smtpUser || "",
       smtpPass: smtpPass || ""
     });
@@ -703,7 +703,7 @@ app.get("/api/google/config", (req, res) => {
       spreadsheetId: config.spreadsheetId || "",
       accessToken: config.accessToken || "",
       webhookUrl: config.webhookUrl || "",
-      receiverEmail: config.receiverEmail || "Contact@domya.net",
+      receiverEmail: config.receiverEmail || "agencydomya@gmail.com",
       smtpUser: config.smtpUser || "",
       smtpPass: config.smtpPass || ""
     });

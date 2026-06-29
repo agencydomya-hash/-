@@ -35,7 +35,7 @@ export default function AdminPortal() {
     spreadsheetId: '',
     accessToken: '',
     webhookUrl: '',
-    receiverEmail: 'Contact@domya.net',
+    receiverEmail: 'agencydomya@gmail.com',
     smtpUser: '',
     smtpPass: ''
   });
@@ -206,7 +206,7 @@ export default function AdminPortal() {
           spreadsheetId: data.spreadsheetId || '',
           accessToken: data.accessToken || '',
           webhookUrl: data.webhookUrl || '',
-          receiverEmail: data.receiverEmail || 'Contact@domya.net',
+          receiverEmail: data.receiverEmail || 'agencydomya@gmail.com',
           smtpUser: data.smtpUser || '',
           smtpPass: data.smtpPass || ''
         });
@@ -735,7 +735,7 @@ export default function AdminPortal() {
                       <label className="block text-xs font-bold text-gray-300">البريد الإلكتروني لاستقبال الإشعارات (Receiver Email)</label>
                       <input
                         type="email"
-                        placeholder="Contact@domya.net"
+                        placeholder="agencydomya@gmail.com"
                         value={googleConfig.receiverEmail}
                         onChange={(e) => setGoogleConfig(prev => ({ ...prev, receiverEmail: e.target.value }))}
                         className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
