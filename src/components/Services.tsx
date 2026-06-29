@@ -91,7 +91,7 @@ export default function Services() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="bg-gray-50/50 p-6 rounded-2xl border border-gray-100/80 hover:border-[#1A2B5B]/20 transition duration-300 flex flex-col justify-between"
+                className="glass-light p-6 rounded-3xl hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
               >
                 <div className="space-y-4">
                   <div className={`w-12 h-12 rounded-xl ${symptom.bg} flex items-center justify-center`}>
@@ -106,13 +106,18 @@ export default function Services() {
         </div>
 
         {/* Section 2: Treatment Plan (الخطة العلاجية) */}
-        <div className="mt-28" id="treatment-plan">
-          <div className="text-center mb-16 space-y-3">
+        <div className="mt-28 bg-gradient-to-br from-[#0a1128] via-[#101b3d] to-[#1A2B5B] p-8 sm:p-12 lg:p-16 rounded-[40px] shadow-2xl relative overflow-hidden text-white" id="treatment-plan">
+          
+          {/* Subtle aurora blob background inside the container */}
+          <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 aurora-blob"></div>
+          <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-blue-500/10 aurora-blob-2"></div>
+
+          <div className="text-center mb-16 space-y-3 relative z-10">
             <span className="text-[#FF8C00] font-bold uppercase tracking-wider text-sm block">الوصفة الطبية المتكاملة</span>
-            <h2 className="text-3xl sm:text-4xl font-sans font-bold text-[#1A2B5B]">
+            <h2 className="text-3xl sm:text-4xl font-sans font-bold text-white">
               الخطة العلاجية الشاملة من دومايا لعام 2026 💊
             </h2>
-            <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
+            <p className="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
               هندسة حضورك الرقمي وبناء براند طبي فخم من عيادتك يخليك المرجع الأول لمرضاك. إليك تفاصيل خطتك العلاجية:
             </p>
           </div>
@@ -125,7 +130,7 @@ export default function Services() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
-                className="bg-gradient-to-br from-[#0a1128] to-[#1A2B5B] p-8 rounded-2xl text-white relative overflow-hidden shadow-xl border border-white/5"
+                className="glass p-8 rounded-3xl text-white relative overflow-hidden shadow-2xl hover:border-orange-500/30 transition-all duration-300 group"
               >
                 {/* Background watermarked large Rx */}
                 <span className="absolute top-2 left-4 text-7xl font-serif font-black text-white/[0.03] select-none pointer-events-none">

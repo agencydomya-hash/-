@@ -104,66 +104,65 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
               initial={{ opacity: 0, scale: 0.9, rotate: 1 }}
               animate={{ opacity: 1, scale: 1, rotate: -1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="w-full max-w-sm bg-white text-gray-900 rounded-2xl shadow-2xl border-4 border-orange-500/20 p-6 relative overflow-hidden"
-              style={{ fontFamily: 'sans-serif' }}
+              className="w-full max-w-sm glass text-white rounded-3xl shadow-2xl p-6 relative overflow-hidden border border-white/10"
               id="prescription-hero-card"
             >
               {/* Medical clipboard clip effect */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-gray-200 rounded-b-xl border-b border-gray-300 flex items-center justify-center">
-                <div className="w-10 h-1.5 bg-gray-400 rounded-full"></div>
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-5 bg-white/10 rounded-b-xl border-b border-white/20 flex items-center justify-center">
+                <div className="w-10 h-1.5 bg-white/25 rounded-full"></div>
               </div>
 
               {/* Watermark Logo */}
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none select-none">
-                <Logo iconOnly className="w-80 h-80" />
+                <Logo iconOnly className="w-80 h-80" light />
               </div>
 
-              <div className="pt-4 border-b border-gray-100 pb-4 flex justify-between items-center" dir="rtl">
+              <div className="pt-4 border-b border-white/10 pb-4 flex justify-between items-center" dir="rtl">
                 <div className="text-right">
-                  <span className="text-xs font-bold text-orange-600 tracking-wider">عيادة النجاح الرقمي</span>
-                  <h3 className="text-lg font-bold text-[#1A2B5B]">د. تشخيص الحضور</h3>
+                  <span className="text-xs font-bold text-orange-400 tracking-wider">عيادة النجاح الرقمي</span>
+                  <h3 className="text-lg font-bold text-white">د. تشخيص الحضور</h3>
                 </div>
-                <Stethoscope className="w-10 h-10 text-orange-600" />
+                <Stethoscope className="w-10 h-10 text-orange-400" />
               </div>
 
               {/* Patient File layout */}
               <div className="py-5 space-y-4 text-right" dir="rtl">
-                <div className="bg-gray-50 p-3 rounded-lg border-r-4 border-[#1A2B5B]">
-                  <span className="text-[10px] font-bold text-gray-500 block uppercase font-mono">الحالة (Case Profile)</span>
-                  <p className="text-xs font-semibold text-gray-800 mt-1">
+                <div className="bg-white/5 p-3 rounded-xl border-r-4 border-orange-400/80 border border-white/5">
+                  <span className="text-[10px] font-bold text-orange-300 block uppercase font-mono">الحالة (Case Profile)</span>
+                  <p className="text-xs font-medium text-gray-200 mt-1 leading-relaxed">
                     طبيب ماهر جداً في تخصصه ومحبوب، ولكن عيادته غير مرئية على محركات البحث والسوشيال ميديا.
                   </p>
                 </div>
 
-                <div className="bg-gray-50 p-3 rounded-lg border-r-4 border-[#FF8C00]">
-                  <span className="text-[10px] font-bold text-gray-500 block uppercase font-mono">الملاحظة (Diagnosis)</span>
-                  <p className="text-xs font-semibold text-gray-800 mt-1">
+                <div className="bg-white/5 p-3 rounded-xl border-r-4 border-[#FF8C00] border border-white/5">
+                  <span className="text-[10px] font-bold text-orange-300 block uppercase font-mono">الملاحظة (Diagnosis)</span>
+                  <p className="text-xs font-medium text-gray-200 mt-1 leading-relaxed">
                     المرضى الآن يفحصون الملف الرقمي للطبيب وقصص نجاحه وصور عيادته بالفيديو قبل اتخاذ قرار الحجز.
                   </p>
                 </div>
 
-                <div className="bg-orange-50/70 p-3 rounded-lg border-r-4 border-orange-500">
-                  <span className="text-[10px] font-bold text-orange-600 block uppercase font-mono">الروشتة العلاجية (Rx)</span>
-                  <ul className="text-xs font-bold text-gray-800 mt-1 space-y-1">
+                <div className="bg-orange-500/10 p-3 rounded-xl border-r-4 border-orange-400 border border-orange-500/10">
+                  <span className="text-[10px] font-bold text-orange-400 block uppercase font-mono">الروشتة العلاجية (Rx)</span>
+                  <ul className="text-xs font-bold text-gray-100 mt-1 space-y-1.5">
                     <li className="flex items-center gap-1.5 justify-start">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
                       <span>إنتاج محتوى Reels عالي الجودة بالعيادة</span>
                     </li>
                     <li className="flex items-center gap-1.5 justify-start">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
                       <span>كتابة نصوص طبية تبسط المعلومة بالعامية</span>
                     </li>
                     <li className="flex items-center gap-1.5 justify-start">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-600"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400"></span>
                       <span>إعلانات مستهدفة جغرافياً لجذب الحجوزات</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-3 text-center" dir="rtl">
+              <div className="border-t border-white/10 pt-3 text-center" dir="rtl">
                 <div className="text-[10px] text-gray-400 flex items-center justify-center gap-1">
-                  <Award className="w-3 h-3 text-orange-500" />
+                  <Award className="w-3 h-3 text-orange-400" />
                   <span>توقيع وكالة دومايا - يونيو 2026</span>
                 </div>
               </div>
