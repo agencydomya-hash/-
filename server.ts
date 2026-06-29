@@ -19,10 +19,15 @@ const PORT = 3000;
 
 // Reusable helper to dynamically construct the redirect URI based on client request
 const getRedirectUri = (req: express.Request): string => {
+  const host = req.get("host") || "";
+  // If request is coming from localhost, always redirect back to localhost
+  if (host.includes("localhost") || host.includes("127.0.0.1")) {
+    return `http://${host}/api/google/callback`;
+  }
+  // Otherwise, use APP_URL env variable if defined, or fallback to current host
   if (process.env.APP_URL) {
     return `${process.env.APP_URL}/api/google/callback`;
   }
-  const host = req.get("host"); // e.g. "localhost:3000" or custom cloud run URL
   const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   return `${protocol}://${host}/api/google/callback`;
 };
