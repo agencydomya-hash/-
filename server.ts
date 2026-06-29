@@ -447,13 +447,98 @@ app.post("/api/diagnose", async (req, res) => {
   }
 });
 
-// Helper for sending real emails using SMTP/Gmail
-async function sendRealEmail(to: string, subject: string, body: string, receiverEmailConfig?: string) {
+// Helper for sending real emails using Gmail API or SMTP fallback
+async function sendRealEmail(to: string, subject: string, body: string) {
   const gConfig = loadGoogleConfig();
-  const smtpUser = gConfig.smtpUser || process.env.SMTP_USER || "";
-  const smtpPass = gConfig.smtpPass || process.env.SMTP_PASS || "";
-  const fallbackSender = receiverEmailConfig || "Contact@domya.net";
-  
+  let sentSuccessfully = false;
+  let methodUsed = "none";
+
+  // Method 1: Try sending using the Gmail API (Google OAuth Token)
+  if (gConfig.accessToken) {
+    try {
+      console.log(`[Gmail API] Attempting to send email to ${to}...`);
+      
+      const buildMimeMessage = (toAddr: string, subj: string, txt: string) => {
+        const utf8Subject = `=?utf-8?B?${Buffer.from(subj).toString('base64')}?=`;
+        const parts = [
+          `To: ${toAddr}`,
+          `Subject: ${utf8Subject}`,
+          'Content-Type: text/plain; charset=utf-8',
+          'MIME-Version: 1.0',
+          '',
+          txt
+        ];
+        return Buffer.from(parts.join('\r\n'))
+          .toString('base64')
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+      };
+
+      const sendMailCall = async (token: string) => {
+        const rawMessage = buildMimeMessage(to, subject, body);
+        return fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ raw: rawMessage })
+        });
+      };
+
+      let response = await sendMailCall(gConfig.accessToken);
+
+      // If token expired, refresh and retry once
+      if (response.status === 401) {
+        console.log("[Gmail API] Token unauthorized. Attempting refresh...");
+        const newTok = await refreshGoogleAccessToken();
+        if (newTok) {
+          response = await sendMailCall(newTok);
+        }
+      }
+
+      if (response.ok) {
+        console.log(`[Gmail API] Email successfully sent to ${to}`);
+        sentSuccessfully = true;
+        methodUsed = "Gmail API";
+      } else {
+        console.error("[Gmail API] Send failed:", await response.text());
+      }
+    } catch (err) {
+      console.error("[Gmail API] Exception during send:", err);
+    }
+  }
+
+  // Method 2: Fallback to SMTP/Nodemailer if Gmail API failed or wasn't configured
+  if (!sentSuccessfully && gConfig.smtpUser && gConfig.smtpPass) {
+    try {
+      console.log(`[SMTP] Attempting SMTP fallback to ${to}...`);
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: gConfig.smtpUser,
+          pass: gConfig.smtpPass
+        }
+      });
+      await transporter.sendMail({
+        from: `"Domya Agency" <${gConfig.smtpUser}>`,
+        to,
+        subject,
+        text: body
+      });
+      console.log(`[SMTP] Email successfully sent to ${to}`);
+      sentSuccessfully = true;
+      methodUsed = "SMTP";
+    } catch (err) {
+      console.error("[SMTP] Failed to send email via SMTP:", err);
+    }
+  }
+
+  if (!sentSuccessfully) {
+    console.log(`[SIMULATOR] Email simulation logged to file. (No working send method)`);
+  }
+
   // Always log locally
   const logFile = path.join(process.cwd(), "email_logs.json");
   let logs: any[] = [];
@@ -466,32 +551,10 @@ async function sendRealEmail(to: string, subject: string, body: string, receiver
     to,
     subject,
     body,
-    sentViaSmtp: !!(smtpUser && smtpPass)
+    sentSuccessfully,
+    methodUsed
   });
   fs.writeFileSync(logFile, JSON.stringify(logs, null, 2));
-
-  if (smtpUser && smtpPass) {
-    try {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: smtpUser,
-          pass: smtpPass
-        }
-      });
-      await transporter.sendMail({
-        from: `"Domya Agency" <${smtpUser}>`,
-        to,
-        subject,
-        text: body
-      });
-      console.log(`[SMTP] Email successfully sent to ${to}`);
-    } catch (err) {
-      console.error("[SMTP] Failed to send email via SMTP, logged to file:", err);
-    }
-  } else {
-    console.log(`[SIMULATOR] Email simulation logged to file. (SMTP credentials missing in environment)`);
-  }
 }
 
 // 2. Form Submission API (Booking consultation)
@@ -584,10 +647,10 @@ app.post("/api/submit", async (req, res) => {
 
     // 1. To doctor
     if (email && email !== "غير محدد") {
-      await sendRealEmail(email, doctorSubject, doctorBody, targetReceiver);
+      await sendRealEmail(email, doctorSubject, doctorBody);
     }
     // 2. To agency (configured email)
-    await sendRealEmail(targetReceiver, agencySubject, agencyBody, targetReceiver);
+    await sendRealEmail(targetReceiver, agencySubject, agencyBody);
 
     res.json({
       success: true,
@@ -722,7 +785,7 @@ app.get("/api/google/auth-url", (req, res) => {
       `client_id=${GOOGLE_CLIENT_ID}` + 
       `&redirect_uri=${encodeURIComponent(redirectUri)}` + 
       `&response_type=code` + 
-      `&scope=${encodeURIComponent("https://www.googleapis.com/auth/spreadsheets")}` + 
+      `&scope=${encodeURIComponent("https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/gmail.send")}` + 
       `&access_type=offline` + 
       `&prompt=consent`;
     res.json({ url: authUrl });
