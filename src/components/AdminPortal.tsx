@@ -28,7 +28,9 @@ export default function AdminPortal() {
     spreadsheetId: '',
     accessToken: '',
     webhookUrl: '',
-    receiverEmail: 'Contact@domya.net'
+    receiverEmail: 'Contact@domya.net',
+    smtpUser: '',
+    smtpPass: ''
   });
   const [savingConfig, setSavingConfig] = useState(false);
 
@@ -36,6 +38,9 @@ export default function AdminPortal() {
   const [reels, setReels] = useState<any[]>([]);
   const [loadingReels, setLoadingReels] = useState(false);
   const [editingReel, setEditingReel] = useState<any | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  
   const [reelForm, setReelForm] = useState({
     id: '',
     specialty: '',
@@ -45,8 +50,57 @@ export default function AdminPortal() {
     coverColor: 'from-[#091B65] to-[#FF5100]',
     length: 15,
     qualityPillars: ['', '', ''],
-    subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو'
+    subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو',
+    videoUrl: '',
+    coverUrl: ''
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'cover') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (type === 'video') setUploadingVideo(true);
+    else setUploadingCover(true);
+
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const resultString = reader.result as string;
+        const base64Data = resultString.substring(resultString.indexOf(',') + 1);
+        const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            auth: 'domya2026',
+            fileName: uniqueFileName,
+            fileData: base64Data
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (type === 'video') {
+            setReelForm(prev => ({ ...prev, videoUrl: data.url }));
+            alert('تم رفع ملف الفيديو بنجاح! 🎥');
+          } else {
+            setReelForm(prev => ({ ...prev, coverUrl: data.url }));
+            alert('تم رفع صورة الغلاف بنجاح! 🖼️');
+          }
+        } else {
+          alert('فشل رفع الملف على السيرفر.');
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      alert('حدث خطأ أثناء معالجة رفع الملف.');
+    } finally {
+      if (type === 'video') setUploadingVideo(false);
+      else setUploadingCover(false);
+    }
+  };
 
   const fetchReels = async () => {
     setLoadingReels(true);
@@ -109,7 +163,9 @@ export default function AdminPortal() {
       coverColor: reelForm.coverColor,
       length: Number(reelForm.length),
       qualityPillars: reelForm.qualityPillars.filter(p => p.trim() !== ''),
-      subtitles: parsedSubtitles
+      subtitles: parsedSubtitles,
+      videoUrl: reelForm.videoUrl || '',
+      coverUrl: reelForm.coverUrl || ''
     };
 
     try {
@@ -143,7 +199,9 @@ export default function AdminPortal() {
           spreadsheetId: data.spreadsheetId || '',
           accessToken: data.accessToken || '',
           webhookUrl: data.webhookUrl || '',
-          receiverEmail: data.receiverEmail || 'Contact@domya.net'
+          receiverEmail: data.receiverEmail || 'Contact@domya.net',
+          smtpUser: data.smtpUser || '',
+          smtpPass: data.smtpPass || ''
         });
       }
     } catch (err) {
@@ -431,6 +489,15 @@ export default function AdminPortal() {
                   <FileSpreadsheet className="w-4 h-4" />
                   <span>تصدير Excel/CSV</span>
                 </button>
+                <button
+                  onClick={() => {
+                    sessionStorage.removeItem('domya_admin_auth');
+                    window.location.reload();
+                  }}
+                  className="px-4 py-2 bg-red-950/40 hover:bg-red-950/60 border border-red-500/20 text-red-400 font-bold rounded-lg transition text-xs cursor-pointer"
+                >
+                  تسجيل الخروج 🚪
+                </button>
               </div>
             </div>
 
@@ -644,6 +711,42 @@ export default function AdminPortal() {
                     </div>
                   </div>
 
+                  {/* SMTP Credentials Section */}
+                  <div className="border-t border-white/5 pt-6 space-y-4">
+                    <h4 className="text-sm font-bold text-orange-400 border-r-4 border-orange-500 pr-2">
+                      إعدادات إرسال البريد الإلكتروني الحقيقي (Gmail SMTP Config)
+                    </h4>
+                    <p className="text-[11px] text-gray-400">
+                      أدخل بيانات حساب Gmail الخاص بوكالة دومايا لإرسال إيميلات تأكيد حقيقية للأطباء وتنبيهات فورية للمبيعات:
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">بريد المرسل SMTP User (Gmail)</label>
+                        <input
+                          type="email"
+                          placeholder="مثال: DomyaWorld@gmail.com"
+                          value={googleConfig.smtpUser}
+                          onChange={(e) => setGoogleConfig(prev => ({ ...prev, smtpUser: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                        />
+                        <span className="text-[10px] text-gray-500 block">حساب Gmail الرئيسي المرسل للإشعارات.</span>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">كلمة مرور التطبيق SMTP Password (App Password)</label>
+                        <input
+                          type="password"
+                          placeholder="رمز كلمة مرور التطبيق (16 حرفاً)..."
+                          value={googleConfig.smtpPass}
+                          onChange={(e) => setGoogleConfig(prev => ({ ...prev, smtpPass: e.target.value }))}
+                          className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                        />
+                        <span className="text-[10px] text-gray-500 block">كلمة مرور التطبيقات (App Password) المولدة من إعدادات الأمان لحساب جوجل.</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="pt-4 flex justify-start">
                     <button
                       type="submit"
@@ -795,6 +898,73 @@ export default function AdminPortal() {
                       </div>
                     </div>
 
+                    {/* Media File Uploads (Video & Image Cover) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Video File Uploader */}
+                      <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <label className="block text-xs font-bold text-gray-300">رفع ملف الفيديو الحقيقي (Video File - MP4)</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="file"
+                            accept="video/mp4,video/x-m4v,video/*"
+                            onChange={(e) => handleFileUpload(e, 'video')}
+                            className="hidden"
+                            id="video-file-upload-input"
+                          />
+                          <label
+                            htmlFor="video-file-upload-input"
+                            className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
+                          >
+                            {uploadingVideo ? 'جاري رفع الفيديو... ⏳' : 'اختر ملف الفيديو 🎥'}
+                          </label>
+                          {reelForm.videoUrl && (
+                            <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
+                              ✓ {reelForm.videoUrl.split('/').pop()}
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="أو ضع رابط الفيديو مباشرة..."
+                          value={reelForm.videoUrl}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, videoUrl: e.target.value }))}
+                          className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+
+                      {/* Cover Image Uploader */}
+                      <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <label className="block text-xs font-bold text-gray-300">رفع صورة الغلاف/الخلفية (Cover Image - JPG/PNG)</label>
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileUpload(e, 'cover')}
+                            className="hidden"
+                            id="cover-file-upload-input"
+                          />
+                          <label
+                            htmlFor="cover-file-upload-input"
+                            className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
+                          >
+                            {uploadingCover ? 'جاري رفع الصورة... ⏳' : 'اختر صورة الغلاف 🖼️'}
+                          </label>
+                          {reelForm.coverUrl && (
+                            <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
+                              ✓ {reelForm.coverUrl.split('/').pop()}
+                            </span>
+                          )}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="أو ضع رابط الصورة مباشرة..."
+                          value={reelForm.coverUrl}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, coverUrl: e.target.value }))}
+                          className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+                    </div>
+
                     {/* Quality Pillars */}
                     <div className="space-y-2">
                       <label className="block text-xs font-bold text-gray-300">ميزات الإنتاج وجودة الفيمبروداكشن (3 نقاط)</label>
@@ -893,7 +1063,9 @@ export default function AdminPortal() {
                                     ],
                                     subtitlesText: (reel.subtitles || [])
                                       .map((s: any) => `${s.time}: ${s.text}`)
-                                      .join('\n')
+                                      .join('\n'),
+                                    videoUrl: reel.videoUrl || '',
+                                    coverUrl: reel.coverUrl || ''
                                   });
                                 }}
                                 className="flex-1 py-2 bg-orange-600/10 hover:bg-orange-600/20 border border-orange-500/20 text-[#FF5100] text-xs font-bold rounded-xl transition cursor-pointer text-center"

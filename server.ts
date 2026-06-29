@@ -16,8 +16,15 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
+
+// Serve custom uploads directory
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) {
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+app.use("/uploads", express.static(UPLOADS_DIR));
 
 // Data file paths
 const SUBMISSIONS_FILE = path.join(process.cwd(), "submissions.json");
@@ -341,8 +348,9 @@ app.post("/api/diagnose", async (req, res) => {
 
 // Helper for sending real emails using SMTP/Gmail
 async function sendRealEmail(to: string, subject: string, body: string, receiverEmailConfig?: string) {
-  const smtpUser = process.env.SMTP_USER || "";
-  const smtpPass = process.env.SMTP_PASS || "";
+  const gConfig = loadGoogleConfig();
+  const smtpUser = gConfig.smtpUser || process.env.SMTP_USER || "";
+  const smtpPass = gConfig.smtpPass || process.env.SMTP_PASS || "";
   const fallbackSender = receiverEmailConfig || "Contact@domya.net";
   
   // Always log locally
@@ -513,7 +521,7 @@ app.post("/api/submit", async (req, res) => {
 // Save Google Sheets Config
 app.post("/api/google/config", (req, res) => {
   try {
-    const { auth, accessToken, spreadsheetId, webhookUrl, receiverEmail } = req.body;
+    const { auth, accessToken, spreadsheetId, webhookUrl, receiverEmail, smtpUser, smtpPass } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
@@ -521,7 +529,9 @@ app.post("/api/google/config", (req, res) => {
       accessToken: accessToken || "", 
       spreadsheetId: spreadsheetId || "",
       webhookUrl: webhookUrl || "",
-      receiverEmail: receiverEmail || "Contact@domya.net"
+      receiverEmail: receiverEmail || "Contact@domya.net",
+      smtpUser: smtpUser || "",
+      smtpPass: smtpPass || ""
     });
     res.json({ success: true });
   } catch (err) {
@@ -541,7 +551,9 @@ app.get("/api/google/config", (req, res) => {
       spreadsheetId: config.spreadsheetId || "",
       accessToken: config.accessToken || "",
       webhookUrl: config.webhookUrl || "",
-      receiverEmail: config.receiverEmail || "Contact@domya.net"
+      receiverEmail: config.receiverEmail || "Contact@domya.net",
+      smtpUser: config.smtpUser || "",
+      smtpPass: config.smtpPass || ""
     });
   } catch (err) {
     res.status(500).json({ error: "فشل قراءة إعدادات جوجل شيتس." });
@@ -627,6 +639,29 @@ app.post("/api/google/sync-pending", async (req, res) => {
 });
 
 // Dynamic Video Reference Manager Endpoints
+
+// File Upload API
+app.post("/api/upload", (req, res) => {
+  try {
+    const { auth, fileName, fileData } = req.body;
+    if (auth !== "domya2026") {
+      return res.status(401).json({ error: "غير مصرح." });
+    }
+    if (!fileName || !fileData) {
+      return res.status(400).json({ error: "بيانات الملف ناقصة." });
+    }
+
+    const buffer = Buffer.from(fileData, 'base64');
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    const filePath = path.join(uploadsDir, fileName);
+    
+    fs.writeFileSync(filePath, buffer);
+    res.json({ success: true, url: `/uploads/${fileName}` });
+  } catch (err: any) {
+    console.error("Upload error:", err);
+    res.status(500).json({ error: "فشل رفع الملف." });
+  }
+});
 
 // Fetch Reference Reels
 app.get("/api/reels", (req, res) => {

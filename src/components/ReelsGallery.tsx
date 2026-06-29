@@ -17,6 +17,8 @@ interface Reel {
   length: number; // in seconds
   qualityPillars: string[];
   subtitles: { time: number; text: string }[];
+  videoUrl?: string;
+  coverUrl?: string;
 }
 
 const REELS_DATA: Reel[] = [
@@ -91,6 +93,17 @@ export default function ReelsGallery() {
   const [currentTime, setCurrentTime] = useState(0);
   const [activeSubtitle, setActiveSubtitle] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying, selectedReel]);
 
   const [likes, setLikes] = useState<{ [key: string]: number }>({
     reel_ortho: 8521,
@@ -352,8 +365,28 @@ export default function ReelsGallery() {
                     {activeSimulatorView === 'reels' ? (
                       /* VIEW 1: REELS SIMULATOR STREAM */
                       <>
-                        {/* Dynamic Background with pulsing colors during play */}
-                        <div className={`absolute inset-0 bg-gradient-to-b ${selectedReel.coverColor} transition-all duration-1000 ${isPlaying ? 'opacity-85 scale-105' : 'opacity-60'} z-0`}></div>
+                        {/* Dynamic Background or Video/Image */}
+                        {selectedReel?.videoUrl ? (
+                          <video
+                            ref={videoRef}
+                            src={selectedReel.videoUrl}
+                            className="absolute inset-0 w-full h-full object-cover z-0"
+                            autoPlay={isPlaying}
+                            loop
+                            muted
+                            playsInline
+                            style={{ filter: isPlaying ? 'none' : 'brightness(0.6)' }}
+                          />
+                        ) : selectedReel?.coverUrl ? (
+                          <img
+                            src={selectedReel.coverUrl}
+                            className="absolute inset-0 w-full h-full object-cover z-0"
+                            alt="Reel Cover"
+                            style={{ filter: isPlaying ? 'none' : 'brightness(0.6)' }}
+                          />
+                        ) : (
+                          <div className={`absolute inset-0 bg-gradient-to-b ${selectedReel.coverColor} transition-all duration-1000 ${isPlaying ? 'opacity-85 scale-105' : 'opacity-60'} z-0`}></div>
+                        )}
 
                         {/* Quality watermark */}
                         <div className="absolute top-1/4 inset-x-0 text-center text-white/5 select-none pointer-events-none z-10">
