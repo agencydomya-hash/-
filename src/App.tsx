@@ -134,12 +134,12 @@ export default function App() {
                 onClick={() => setShowAdmin(!showAdmin)}
                 className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs sm:text-sm flex items-center gap-1.5 ${
                   showAdmin 
-                    ? 'bg-orange-500 text-white border-orange-500' 
-                    : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'
+                    ? 'bg-[#FF5100] text-white border-[#FF5100]' 
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 hover:text-slate-900'
                 }`}
                 id="header-cta-admin"
               >
-                <Lock className="w-4 h-4 text-orange-500" />
+                <Lock className="w-4 h-4 text-[#FF5100]" />
                 <span>بوابة المبيعات</span>
               </button>
             </div>

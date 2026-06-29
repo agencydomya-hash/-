@@ -563,7 +563,7 @@ export default function ReelsGallery() {
                         <button
                           onClick={togglePlay}
                           disabled={activeSimulatorView === 'dm'}
-                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer"
+                          className="px-4 py-2 bg-[#FF5100] hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer"
                         >
                           {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                           <span>{isPlaying ? "إيقاف مؤقت" : "تشغيل المحاكي"}</span>
