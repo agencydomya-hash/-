@@ -366,154 +366,61 @@ export default function ReelsGallery() {
                       /* VIEW 1: REELS SIMULATOR STREAM */
                       <>
                         {/* Dynamic Background or Video/Image */}
-                        {selectedReel?.videoUrl ? (
-                          <video
-                            ref={videoRef}
-                            src={selectedReel.videoUrl}
-                            className="absolute inset-0 w-full h-full object-cover z-0"
-                            autoPlay={isPlaying}
-                            loop
-                            muted
-                            playsInline
-                            style={{ filter: isPlaying ? 'none' : 'brightness(0.6)' }}
-                          />
-                        ) : selectedReel?.coverUrl ? (
-                          <img
-                            src={selectedReel.coverUrl}
-                            className="absolute inset-0 w-full h-full object-cover z-0"
-                            alt="Reel Cover"
-                            style={{ filter: isPlaying ? 'none' : 'brightness(0.6)' }}
-                          />
-                        ) : (
-                          <div className={`absolute inset-0 bg-gradient-to-b ${selectedReel.coverColor} transition-all duration-1000 ${isPlaying ? 'opacity-85 scale-105' : 'opacity-60'} z-0`}></div>
-                        )}
+                        <video
+                          ref={videoRef}
+                          src={selectedReel?.videoUrl || "/uploads/1782738053406_5.mp4"}
+                          className="absolute inset-0 w-full h-full object-cover z-0"
+                          autoPlay={isPlaying}
+                          loop
+                          muted
+                          playsInline
+                          style={{ filter: isPlaying ? 'none' : 'brightness(0.85)' }}
+                        />
 
-                        {/* Quality watermark */}
-                        <div className="absolute top-1/4 inset-x-0 text-center text-white/5 select-none pointer-events-none z-10">
-                          <span className="text-3xl font-black font-sans">DOMYA HD</span>
-                        </div>
-
-                        {/* Left action panel (Instagram overlay style) */}
-                        <div className="absolute left-2.5 bottom-28 flex flex-col gap-3.5 items-center z-20">
-                          {/* Like Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const reelId = selectedReel.id;
-                              const liked = hasLiked[reelId];
-                              setHasLiked(prev => ({ ...prev, [reelId]: !liked }));
-                              setLikes(prev => ({ ...prev, [reelId]: prev[reelId] + (liked ? -1 : 1) }));
-                            }}
-                            className="flex flex-col items-center group"
-                          >
-                            <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition">
-                              <Heart className={`w-3.5 h-3.5 ${hasLiked[selectedReel.id] ? 'text-red-500 fill-current' : 'text-white'}`} />
-                            </div>
-                            <span className="text-[9px] font-bold font-mono mt-0.5">{likes[selectedReel.id]}</span>
-                          </button>
-
-
-
-                          {/* ManyChat Automator Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setReceivedDM({
-                                show: true,
-                                sender: selectedReel.doctorName,
-                                userComment: "روشتة",
-                                text: `أهلاً بك دكتور! نورت العيادة 🏥. تيم وكالة دومايا صمم هذا النظام التلقائي ليرسل لك العروض والروشتات فوراً.`
-                              });
-                              setActiveSimulatorView('dm');
-                              setIsPlaying(false);
-                            }}
-                            className="flex flex-col items-center group"
-                          >
-                            <div className="w-8 h-8 rounded-full bg-orange-500/20 backdrop-blur-md flex items-center justify-center border border-orange-500/40 hover:bg-orange-500 hover:scale-110 active:scale-95 transition">
-                              <Send className="w-3.5 h-3.5 text-orange-400 group-hover:text-white" />
-                            </div>
-                            <span className="text-[8px] text-orange-300 font-bold mt-0.5">مراسلة 📲</span>
-                          </button>
-
-                          {/* Share button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowToast("🔗 تم نسخ رابط الفيديو للمشاركة السريعة!");
-                            }}
-                            className="flex flex-col items-center"
-                          >
-                            <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:scale-110 transition">
-                              <Share2 className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <span className="text-[8px] text-gray-300 mt-0.5 font-bold">مشاركة</span>
-                          </button>
-                        </div>
-
-                        {/* Mid content: Floating elements or bouncing audio wave */}
+                        {/* Centered clean Play button overlay if paused */}
                         <div 
                           onClick={togglePlay}
-                          className="flex flex-col items-center justify-center flex-grow z-10 cursor-pointer w-full h-full"
+                          className="absolute inset-0 flex items-center justify-center z-10 cursor-pointer w-full h-full"
                         >
-                          {isPlaying ? (
-                            <div className="flex items-end gap-1 h-12 mb-4">
-                              {[...Array(6)].map((_, i) => (
-                                <motion.span
-                                  key={i}
-                                  animate={{ height: [12, 40, 12] }}
-                                  transition={{
-                                    duration: 0.6 + i * 0.1,
-                                    repeat: Infinity,
-                                    ease: "easeInOut"
-                                  }}
-                                  className="w-1.5 bg-orange-500 rounded-full"
-                                />
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center text-white animate-pulse">
+                          {!isPlaying && (
+                            <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white transition transform hover:scale-105 active:scale-95">
                               <Play className="w-5 h-5 fill-current ml-0.5" />
                             </div>
                           )}
-                          
-                          <span className="text-[8px] bg-black/30 px-2.5 py-1 rounded-full text-orange-300 font-bold tracking-wider font-mono text-center">
-                            صوت نقي بفلتر عزل الضوضاء 🎙️
-                          </span>
                         </div>
 
-                        {/* Bottom: Subtitles box + Doctor information overlay */}
-                        <div className="z-10 space-y-2 bg-gradient-to-t from-black/90 via-black/40 to-transparent p-2 rounded-xl">
-                          
-                          {/* Interactive Subtitles (كلام الدكتور المكتوب) */}
-                          <div className="min-h-[44px] flex items-center justify-center text-center px-1">
-                            <AnimatePresence mode="wait">
-                              <motion.p
-                                key={activeSubtitle}
-                                initial={{ opacity: 0, y: 5 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0 }}
-                                className="text-[10px] font-bold text-yellow-350 leading-relaxed text-shadow"
-                              >
-                                {activeSubtitle || "جاري التشغيل..."}
-                              </motion.p>
-                            </AnimatePresence>
-                          </div>
-
-                          {/* Doctor tag inside smartphone */}
-                          <div className="flex items-center justify-between border-t border-white/15 pt-1.5">
-                            <div className="flex items-center gap-1.5 text-right">
-                              <div className="w-5 h-5 rounded-full bg-[#FF5100] flex items-center justify-center text-[10px] font-bold text-white">
-                                <User className="w-3 h-3" />
+                        {/* Clean overlay bottom details */}
+                        <div className="z-10 space-y-2 bg-gradient-to-t from-black/85 via-black/30 to-transparent p-3 rounded-b-3xl">
+                          {/* Doctor details tag */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-right">
+                              <div className="w-6 h-6 rounded-full bg-[#FF5100] flex items-center justify-center text-[10px] font-bold text-white shadow-md">
+                                <User className="w-3.5 h-3.5" />
                               </div>
-                              <div className="text-white">
-                                <div className="text-[8px] font-bold">{selectedReel.doctorName}</div>
-                                <div className="text-[7px] text-gray-300">{selectedReel.specialty.split(" ")[0]}</div>
+                              <div className="text-white text-right">
+                                <div className="text-[10px] font-bold leading-tight">{selectedReel.doctorName}</div>
+                                <div className="text-[8px] text-gray-300">{selectedReel.specialty}</div>
                               </div>
                             </div>
 
-                            <span className="text-[8px] font-bold text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded">
-                              ميديا معتمد
-                            </span>
+                            {/* Clean trigger automator button */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setReceivedDM({
+                                  show: true,
+                                  sender: selectedReel.doctorName,
+                                  userComment: "روشتة",
+                                  text: `أهلاً بك دكتور! نورت العيادة 🏥. تيم وكالة دومايا صمم هذا النظام التلقائي ليرسل لك العروض والروشتات فوراً.`
+                                });
+                                setActiveSimulatorView('dm');
+                                setIsPlaying(false);
+                              }}
+                              className="px-2.5 py-1 bg-[#FF5100] hover:bg-orange-600 text-white rounded-lg text-[8px] font-bold transition flex items-center gap-1 shadow-md shadow-orange-500/20 cursor-pointer"
+                            >
+                              <Send className="w-2.5 h-2.5" />
+                              <span>مراسلة تلقائية 📲</span>
+                            </button>
                           </div>
                         </div>
                       </>

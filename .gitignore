@@ -6,3 +6,6 @@ coverage/
 *.log
 .env*
 !.env.example
+google_config.json
+submissions.json
+email_logs.json
