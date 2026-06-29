@@ -30,7 +30,7 @@ export default function Footer() {
                 href="https://www.facebook.com/domyaworld"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF8C00] hover:border-orange-500 transition duration-300"
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF5100] hover:border-orange-500 transition duration-300"
                 aria-label="Facebook Page"
                 id="footer-social-facebook"
               >
@@ -40,7 +40,7 @@ export default function Footer() {
                 href="https://www.instagram.com/domya_marketing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF8C00] hover:border-orange-500 transition duration-300"
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF5100] hover:border-orange-500 transition duration-300"
                 aria-label="Instagram Profile"
                 id="footer-social-instagram"
               >
@@ -50,7 +50,7 @@ export default function Footer() {
                 href="https://www.facebook.com/domyaworld" // or custom linkedIn if needed
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF8C00] hover:border-orange-500 transition duration-300"
+                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-[#FF5100] hover:border-orange-500 transition duration-300"
                 aria-label="LinkedIn Profile"
                 id="footer-social-linkedin"
               >
@@ -61,7 +61,7 @@ export default function Footer() {
 
           {/* Column 2: Egypt Office Contacts */}
           <div className="md:col-span-4 space-y-4">
-            <h3 className="text-white font-bold text-sm tracking-wide border-r-4 border-[#FF8C00] pr-2">
+            <h3 className="text-white font-bold text-sm tracking-wide border-r-4 border-[#FF5100] pr-2">
               فرع جمهورية مصر العربية 🇪🇬
             </h3>
             <ul className="space-y-3 text-xs sm:text-sm">
@@ -71,7 +71,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2.5 justify-start" dir="ltr">
                 <Phone className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <a href="tel:+201090121000" className="hover:text-[#FF8C00] transition">+201090121000</a>
+                <a href="tel:+201090121000" className="hover:text-[#FF5100] transition">+201090121000</a>
               </li>
               <li className="flex items-center gap-2.5 justify-start">
                 <MessageCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -96,7 +96,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2.5 justify-start">
                 <Mail className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <a href="mailto:Contact@domya.net" className="hover:text-[#FF8C00] transition font-mono">Contact@domya.net</a>
+                <a href="mailto:Contact@domya.net" className="hover:text-[#FF5100] transition font-mono">Contact@domya.net</a>
               </li>
             </ul>
           </div>
@@ -115,7 +115,7 @@ export default function Footer() {
 
           <button
             onClick={handleScrollToTop}
-            className="p-2.5 bg-white/5 border border-white/10 hover:bg-[#FF8C00] hover:text-white rounded-xl text-gray-300 transition duration-300 flex items-center justify-center gap-1 cursor-pointer"
+            className="p-2.5 bg-white/5 border border-white/10 hover:bg-[#FF5100] hover:text-white rounded-xl text-gray-300 transition duration-300 flex items-center justify-center gap-1 cursor-pointer"
             id="scroll-to-top"
           >
             <span>العودة للأعلى</span>

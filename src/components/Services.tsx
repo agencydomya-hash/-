@@ -67,16 +67,16 @@ const TREATMENT_PILLARS = [
 
 export default function Services() {
   return (
-    <section className="py-20 bg-white" id="services-and-solutions">
+    <section className="py-20 bg-transparent" id="services-and-solutions">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section 1: Symptoms (الأعراض) */}
         <div className="text-center mb-16 space-y-3">
-          <span className="text-[#FF8C00] font-bold uppercase tracking-wider text-sm block">مرحلة الكشف السريري</span>
-          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-[#1A2B5B]">
+          <span className="text-[#FF5100] font-bold uppercase tracking-wider text-sm block">مرحلة الكشف السريري</span>
+          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-white">
             أعراض الحضور الرقمي الضعيف للأطباء 🩺
           </h2>
-          <p className="text-gray-500 max-w-2xl mx-auto text-sm sm:text-base">
+          <p className="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
             لو بتواجه واحد أو أكتر من الأعراض دي، فعيادتك بتخسر عشرات المرضى الجدد يومياً لصالح منافسين أقل كفاءة علمية لكن أكتر ظهوراً.
           </p>
         </div>
@@ -91,14 +91,14 @@ export default function Services() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className="glass-light p-6 rounded-3xl hover:shadow-xl hover:shadow-slate-100 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
+                className="glass p-6 rounded-3xl hover:shadow-xl hover:shadow-orange-500/5 hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between border border-white/5"
               >
                 <div className="space-y-4">
                   <div className={`w-12 h-12 rounded-xl ${symptom.bg} flex items-center justify-center`}>
                     <IconComponent className={`w-6 h-6 ${symptom.color}`} />
                   </div>
-                  <h3 className="text-lg font-bold text-[#1A2B5B]">{symptom.title}</h3>
-                  <p className="text-gray-600 text-xs sm:text-sm leading-relaxed">{symptom.desc}</p>
+                  <h3 className="text-lg font-bold text-white">{symptom.title}</h3>
+                  <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">{symptom.desc}</p>
                 </div>
               </motion.div>
             );
@@ -106,14 +106,14 @@ export default function Services() {
         </div>
 
         {/* Section 2: Treatment Plan (الخطة العلاجية) */}
-        <div className="mt-28 bg-gradient-to-br from-[#0a1128] via-[#101b3d] to-[#1A2B5B] p-8 sm:p-12 lg:p-16 rounded-[40px] shadow-2xl relative overflow-hidden text-white" id="treatment-plan">
+        <div className="mt-28 bg-gradient-to-br from-[#050B24] via-[#071133] to-[#091B65] p-8 sm:p-12 lg:p-16 rounded-[40px] shadow-2xl relative overflow-hidden text-white" id="treatment-plan">
           
           {/* Subtle aurora blob background inside the container */}
           <div className="absolute -top-24 -left-24 w-80 h-80 rounded-full bg-orange-500/10 aurora-blob"></div>
           <div className="absolute -bottom-24 -right-24 w-80 h-80 rounded-full bg-blue-500/10 aurora-blob-2"></div>
 
           <div className="text-center mb-16 space-y-3 relative z-10">
-            <span className="text-[#FF8C00] font-bold uppercase tracking-wider text-sm block">الوصفة الطبية المتكاملة</span>
+            <span className="text-[#FF5100] font-bold uppercase tracking-wider text-sm block">الوصفة الطبية المتكاملة</span>
             <h2 className="text-3xl sm:text-4xl font-sans font-bold text-white">
               الخطة العلاجية الشاملة من دومايا لعام 2026 💊
             </h2>
@@ -145,7 +145,7 @@ export default function Services() {
                     <CheckCircle2 className="w-5 h-5 text-orange-500" />
                   </div>
 
-                  <h3 className="text-xl font-bold text-[#FF8C00] tracking-tight">{pillar.title}</h3>
+                  <h3 className="text-xl font-bold text-[#FF5100] tracking-tight">{pillar.title}</h3>
                   <p className="text-gray-300 text-xs sm:text-sm leading-relaxed">{pillar.desc}</p>
 
                   <div className="pt-4 border-t border-white/10 space-y-2">

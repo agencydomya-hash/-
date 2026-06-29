@@ -58,10 +58,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
+    <div className="min-h-screen bg-[#050b18] font-sans text-white overflow-x-hidden">
       
       {/* Premium Header / Navigation */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/80 shadow-sm" id="main-header">
+      <header className="sticky top-0 z-50 bg-[#050b18]/60 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/10" id="main-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
@@ -72,25 +72,25 @@ export default function App() {
             <nav className="hidden md:flex items-center gap-8">
               <button 
                 onClick={() => { scrollTo(servicesRef); setShowAdmin(false); }} 
-                className="text-gray-600 hover:text-[#1A2B5B] font-bold text-xs sm:text-sm transition"
+                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
               >
                 أعراض الكشف والحلول
               </button>
               <button 
                 onClick={() => { scrollTo(reelsRef); setShowAdmin(false); }} 
-                className="text-gray-600 hover:text-[#1A2B5B] font-bold text-xs sm:text-sm transition"
+                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
               >
                 معرض سينما العيادة
               </button>
               <button 
                 onClick={() => { scrollTo(testimonialsRef); setShowAdmin(false); }} 
-                className="text-gray-600 hover:text-[#1A2B5B] font-bold text-xs sm:text-sm transition"
+                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
               >
                 شركاء النجاح من الأطباء
               </button>
               <button 
                 onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
-                className="text-gray-600 hover:text-[#1A2B5B] font-bold text-xs sm:text-sm transition"
+                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
               >
                 حجز الزيارة المجانية
               </button>
@@ -111,8 +111,8 @@ export default function App() {
                 onClick={() => setShowAdmin(!showAdmin)}
                 className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs sm:text-sm flex items-center gap-1.5 ${
                   showAdmin 
-                    ? 'bg-slate-900 text-white border-slate-900' 
-                    : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
+                    ? 'bg-orange-500 text-white border-orange-500' 
+                    : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10 hover:text-white'
                 }`}
                 id="header-cta-admin"
               >
@@ -149,31 +149,31 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-gray-100 bg-white"
+              className="md:hidden border-t border-white/5 bg-[#050b18]"
               id="mobile-navigation-panel"
             >
               <div className="px-4 py-6 space-y-4 flex flex-col items-stretch">
                 <button
                   onClick={() => scrollTo(servicesRef)}
-                  className="py-2.5 text-gray-700 hover:text-[#1A2B5B] font-bold text-sm block border-b border-gray-50"
+                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
                 >
                   أعراض الكشف والحلول
                 </button>
                 <button
                   onClick={() => scrollTo(reelsRef)}
-                  className="py-2.5 text-gray-700 hover:text-[#1A2B5B] font-bold text-sm block border-b border-gray-50"
+                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
                 >
                   معرض سينما العيادة
                 </button>
                 <button
                   onClick={() => scrollTo(testimonialsRef)}
-                  className="py-2.5 text-gray-700 hover:text-[#1A2B5B] font-bold text-sm block border-b border-gray-50"
+                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
                 >
                   شركاء النجاح من الأطباء
                 </button>
                 <button
                   onClick={() => scrollTo(bookingRef)}
-                  className="py-2.5 text-gray-700 hover:text-[#1A2B5B] font-bold text-sm block border-b border-gray-50"
+                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
                 >
                   حجز الزيارة المجانية
                 </button>

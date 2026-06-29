@@ -84,24 +84,6 @@ const REELS_DATA: Reel[] = [
   }
 ];
 
-const DEFAULT_COMMENTS: { [key: string]: Array<{ user: string; text: string; time: string }> } = {
-  reel_ortho: [
-    { user: "د. أحمد كمال", text: "معلومة ممتازة يا دكتور هاني، فعلاً طقطقة المفاصل دي وهم ومحتاجة توعية مستمرة.", time: "منذ ساعتين" },
-    { user: "أماني صلاح", text: "الحمد لله طمنتني لأني كنت بطقطق رقبتي دايماً بس هحاول أبطلها.", time: "منذ ٤ ساعات" },
-    { user: "مستكشف_طبي", text: "روشتة", time: "منذ يوم" }
-  ],
-  reel_derma: [
-    { user: "د. ميادة علي", text: "فيديو رائع يا دكتورة رانيا! واقي الشمس فعلاً هو خط الدفاع الأول للبشرة.", time: "منذ ساعة" },
-    { user: "سارة محمود", text: "روشتة", time: "منذ ٣ ساعات" },
-    { user: "أميرة خالد", text: "هل واقي الشمس الفيزيائي أحسن للبشرة الحساسة ولا الكيميائي؟", time: "منذ ٦ ساعات" }
-  ],
-  reel_pedia: [
-    { user: "د. خالد السعدني", text: "أهم نصيحة للأمهات، خافض الحرارة مش مجرد مسكن ده حماية للمخ من التشنج.", time: "منذ ٣٠ دقيقة" },
-    { user: "أم حمزة", text: "بنتي حرارتها ٣٩ ومش راضية تنزل بالكمادات العادية، إيه العمل؟", time: "منذ ساعتين" },
-    { user: "ماما_جديدة", text: "روشتة", time: "منذ ٥ ساعات" }
-  ]
-};
-
 export default function ReelsGallery() {
   const [reels, setReels] = useState<Reel[]>([]);
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
@@ -119,10 +101,6 @@ export default function ReelsGallery() {
   const [activeSimulatorView, setActiveSimulatorView] = useState<'reels' | 'dm'>('reels');
   const [receivedDM, setReceivedDM] = useState<{ show: boolean; text: string; sender: string; userComment: string } | null>(null);
   const [showToast, setShowToast] = useState<string | null>(null);
-
-  const [showComments, setShowComments] = useState(false);
-  const [comments, setComments] = useState<{ [key: string]: Array<{ user: string; text: string; time: string }> }>(DEFAULT_COMMENTS);
-  const [commentInput, setCommentInput] = useState("");
 
   const getLikesCount = (reelId: string) => {
     if (likes[reelId] !== undefined) {
@@ -220,44 +198,14 @@ export default function ReelsGallery() {
     }, 800);
   };
 
-  const handleAddComment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentInput.trim() || !selectedReel) return;
 
-    const newComment = {
-      user: "زائر العيادة (أنت)",
-      text: commentInput,
-      time: "الآن"
-    };
-
-    setComments(prev => ({
-      ...prev,
-      [selectedReel.id]: [...(prev[selectedReel.id] || []), newComment]
-    }));
-
-    const inputVal = commentInput;
-    setCommentInput("");
-
-    if (inputVal.includes("روشتة") || inputVal.includes("روشته")) {
-      setIsPlaying(false);
-      setTimeout(() => {
-        setReceivedDM({
-          show: true,
-          text: `أهلاً بك دكتور! تم رصد تعليقك بكلمة "روشتة". هدايا الكيت التسويقي المجانية جاهزة للإرسال إليك، هل تحب الحصول عليها الآن؟`,
-          sender: selectedReel.doctorName,
-          userComment: inputVal
-        });
-        setActiveSimulatorView('dm');
-      }, 1000);
-    }
-  };
 
   return (
-    <section className="py-20 bg-[#0a1128] text-white overflow-hidden border-b border-white/10" id="media-gallery">
+    <section className="py-20 bg-[#050B24] text-white overflow-hidden border-b border-white/10" id="media-gallery">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-16 space-y-3" dir="rtl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/15 text-[#FF8C00] rounded-full text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/15 text-[#FF5100] rounded-full text-sm font-semibold">
             <Video className="w-4 h-4" />
             <span>معرض سينما دومايا الطبية</span>
           </div>
@@ -286,7 +234,7 @@ export default function ReelsGallery() {
                   <span className="px-2.5 py-1 bg-black/30 rounded-full text-[10px] font-bold text-orange-200">
                     {reel.views} مشاهدة 👁️
                   </span>
-                  <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center border border-white/10 text-white group-hover:bg-[#FF8C00] transition duration-300">
+                  <div className="w-7 h-7 bg-white/10 rounded-full flex items-center justify-center border border-white/10 text-white group-hover:bg-[#FF5100] transition duration-300">
                     <Play className="w-3 h-3 fill-current ml-0.5" />
                   </div>
                 </div>
@@ -431,22 +379,7 @@ export default function ReelsGallery() {
                             <span className="text-[9px] font-bold font-mono mt-0.5">{likes[selectedReel.id]}</span>
                           </button>
 
-                          {/* Comment Button */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowComments(true);
-                              setIsPlaying(false);
-                            }}
-                            className="flex flex-col items-center group"
-                          >
-                            <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:scale-110 active:scale-95 transition">
-                              <MessageCircle className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <span className="text-[9px] font-bold font-mono mt-0.5">
-                              {comments[selectedReel?.id || '']?.length || 0}
-                            </span>
-                          </button>
+
 
                           {/* ManyChat Automator Button */}
                           <button
@@ -536,7 +469,7 @@ export default function ReelsGallery() {
                           {/* Doctor tag inside smartphone */}
                           <div className="flex items-center justify-between border-t border-white/10 pt-1.5">
                             <div className="flex items-center gap-1.5 text-right">
-                              <div className="w-5 h-5 rounded-full bg-[#FF8C00] flex items-center justify-center text-[10px] font-bold">
+                              <div className="w-5 h-5 rounded-full bg-[#FF5100] flex items-center justify-center text-[10px] font-bold">
                                 <User className="w-3 h-3" />
                               </div>
                               <div>
@@ -552,77 +485,7 @@ export default function ReelsGallery() {
                         </div>
 
 
-                        <AnimatePresence>
-                          {showComments && (
-                            <motion.div
-                              initial={{ y: 280 }}
-                              animate={{ y: 0 }}
-                              exit={{ y: 280 }}
-                              className="absolute inset-x-0 bottom-0 h-[280px] bg-[#0c132c]/98 border-t border-white/15 rounded-t-[24px] z-30 flex flex-col justify-between"
-                            >
-                              {/* Header of Drawer */}
-                              <div className="p-3 border-b border-white/10 flex justify-between items-center text-right text-xs">
-                                <span className="font-bold text-gray-200">التعليقات ({comments[selectedReel?.id || '']?.length || 0})</span>
-                                <button
-                                  onClick={() => {
-                                    setShowComments(false);
-                                    setIsPlaying(true);
-                                  }}
-                                  className="text-gray-400 hover:text-white font-bold px-2 py-0.5 text-[11px]"
-                                >
-                                  إغلاق ✕
-                                </button>
-                              </div>
 
-                              {/* Comment List */}
-                              <div className="flex-grow p-3 overflow-y-auto space-y-2.5 text-right scrollbar-thin">
-                                {comments[selectedReel?.id || '']?.map((cmt, cIdx) => (
-                                  <div key={cIdx} className="text-[10px] bg-white/5 p-2 rounded-lg border border-white/5">
-                                    <div className="flex justify-between items-center text-orange-400 font-bold">
-                                      <span>{cmt.user}</span>
-                                      <span className="text-[8px] text-gray-500 font-normal">{cmt.time}</span>
-                                    </div>
-                                    <p className="text-gray-200 mt-1 leading-relaxed font-medium">{cmt.text}</p>
-                                  </div>
-                                ))}
-                              </div>
-
-                              {/* Quick keyword helper tag suggestion */}
-                              <div className="px-3 py-1 bg-[#1A2B5B] flex gap-1.5 overflow-x-auto text-[9px] items-center border-t border-white/5">
-                                <span className="text-orange-400 font-bold whitespace-nowrap">الكلمة السحرية:</span>
-                                <button
-                                  onClick={() => setCommentInput("روشتة")}
-                                  className="bg-white/10 px-2 py-0.5 rounded text-white font-bold whitespace-nowrap"
-                                >
-                                  روشتة ✍️
-                                </button>
-                                <button
-                                  onClick={() => setCommentInput("سعر العرض")}
-                                  className="bg-white/10 px-2 py-0.5 rounded text-white font-bold whitespace-nowrap"
-                                >
-                                  باقة الميديا 🎥
-                                </button>
-                              </div>
-
-                              {/* Write comments form */}
-                              <form onSubmit={handleAddComment} className="p-2 border-t border-white/10 flex gap-2 bg-slate-950">
-                                <input
-                                  type="text"
-                                  value={commentInput}
-                                  onChange={(e) => setCommentInput(e.target.value)}
-                                  placeholder="اكتب 'روشتة' لتجربة المراسلة..."
-                                  className="flex-grow px-2 py-1.5 rounded-lg bg-white/10 border border-white/10 focus:ring-1 focus:ring-orange-500 outline-none text-[10px] text-white font-medium"
-                                />
-                                <button
-                                  type="submit"
-                                  className="px-2.5 py-1.5 bg-[#FF8C00] hover:bg-orange-600 rounded-lg text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0"
-                                >
-                                  <Send className="w-3 h-3" />
-                                </button>
-                              </form>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
                       </>
                     ) : (
                       /* VIEW 2: SIMULATED INSTAGRAM DM AUTO-CHAT */
@@ -630,7 +493,7 @@ export default function ReelsGallery() {
                         {/* DM Header */}
                         <div className="p-3 border-b border-white/10 flex items-center justify-between bg-slate-950/80">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-[#FF8C00] flex items-center justify-center font-bold text-xs">
+                            <div className="w-7 h-7 rounded-full bg-[#FF5100] flex items-center justify-center font-bold text-xs">
                               {selectedReel.doctorName[3]}
                             </div>
                             <div>
@@ -666,7 +529,7 @@ export default function ReelsGallery() {
 
                           {/* Doctor Automated Reply 1 */}
                           <div className="self-start max-w-[90%] bg-slate-900 p-2.5 rounded-2xl rounded-tl-none border border-white/5 space-y-1 shadow-md">
-                            <span className="text-[8px] text-[#FF8C00] font-bold block">مساعد {selectedReel.doctorName} الآلي:</span>
+                            <span className="text-[8px] text-[#FF5100] font-bold block">مساعد {selectedReel.doctorName} الآلي:</span>
                             <p className="text-[10px] text-gray-200 leading-relaxed font-semibold">
                               أهلاً بك دكتور! نورت بروفايل العيادة 🏥.
                             </p>
@@ -714,7 +577,7 @@ export default function ReelsGallery() {
                 {/* Quality pillars and controls */}
                 <div className="lg:col-span-7 space-y-6 text-right font-sans">
                   <div>
-                    <span className="text-xs text-[#FF8C00] font-bold uppercase tracking-wider font-mono block">التحليل الفني للإنتاج والربط</span>
+                    <span className="text-xs text-[#FF5100] font-bold uppercase tracking-wider font-mono block">التحليل الفني للإنتاج والربط</span>
                     <h3 className="text-2xl font-bold text-white mt-1">كيف تصنع دومايا فيديوهات بهذا التميز؟ 🎞️</h3>
                     <p className="text-gray-300 text-xs sm:text-sm mt-2 leading-relaxed">
                       الفيديو الذي تشاهده ليس مجرد كلام عشوائي، بل تم تصميمه بعناية فائقة وتتبع لمعايير الإنتاج العالمية، مع دمج **نظام الأتمتة المباشرة (Comment-to-DM Autoresponder)** لتحويل التعليقات لحجوزات حقيقية في ثوانٍ.
@@ -743,7 +606,7 @@ export default function ReelsGallery() {
                     {/* Custom progress slider */}
                     <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden relative">
                       <div 
-                        className="h-full bg-gradient-to-r from-orange-500 to-[#FF8C00] transition-all duration-300"
+                        className="h-full bg-gradient-to-r from-orange-500 to-[#FF5100] transition-all duration-300"
                         style={{ width: `${(currentTime / selectedReel.length) * 100}%` }}
                       ></div>
                     </div>

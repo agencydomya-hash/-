@@ -21,6 +21,62 @@ export default function AdminPortal() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editNotes, setEditNotes] = useState('');
 
+  // States for Google Workspace and custom SMTP Configs
+  const [googleConfig, setGoogleConfig] = useState({
+    spreadsheetId: '',
+    accessToken: '',
+    webhookUrl: '',
+    receiverEmail: 'Contact@domya.net'
+  });
+  const [savingConfig, setSavingConfig] = useState(false);
+
+  const fetchGoogleConfig = async () => {
+    try {
+      const response = await fetch('/api/google/config?auth=domya2026');
+      if (response.ok) {
+        const data = await response.json();
+        setGoogleConfig({
+          spreadsheetId: data.spreadsheetId || '',
+          accessToken: data.accessToken || '',
+          webhookUrl: data.webhookUrl || '',
+          receiverEmail: data.receiverEmail || 'Contact@domya.net'
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load Google configuration:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'integrations') {
+      fetchGoogleConfig();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  const handleSaveGoogleConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingConfig(true);
+    try {
+      const response = await fetch('/api/google/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auth: 'domya2026',
+          ...googleConfig
+        })
+      });
+      if (response.ok) {
+        showSuccess('تم حفظ إعدادات المزامنة والربط بنجاح! 🔒');
+      } else {
+        setError('فشل حفظ الإعدادات على الخادم.');
+      }
+    } catch (err) {
+      setError('فشل الاتصال بالخادم لحفظ الإعدادات.');
+    } finally {
+      setSavingConfig(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'domya2026') {
@@ -155,13 +211,13 @@ export default function AdminPortal() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF8C00] outline-none text-center font-mono tracking-widest text-white text-sm"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-center font-mono tracking-widest text-white text-sm"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#FF8C00] hover:bg-orange-600 rounded-xl font-bold transition text-xs sm:text-sm"
+                className="w-full py-3 bg-[#FF5100] hover:bg-orange-600 rounded-xl font-bold transition text-xs sm:text-sm"
               >
                 فتح بوابة التحكم بالبيانات
               </button>
@@ -180,7 +236,7 @@ export default function AdminPortal() {
               <div className="bg-slate-900 border border-white/5 p-5 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-xs text-gray-400">إجمالي الأطباء المسجلين</span>
-                  <div className="text-2xl font-black mt-1 font-mono text-[#FF8C00]">{submissions.length}</div>
+                  <div className="text-2xl font-black mt-1 font-mono text-[#FF5100]">{submissions.length}</div>
                 </div>
                 <Users className="w-8 h-8 text-orange-500/30" />
               </div>
@@ -220,7 +276,7 @@ export default function AdminPortal() {
                 <button
                   onClick={() => setActiveTab('leads')}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                    activeTab === 'leads' ? 'bg-[#FF8C00] text-white' : 'bg-white/5 text-gray-300'
+                    activeTab === 'leads' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
                   }`}
                 >
                   طلبات الأطباء الحالية ({submissions.length})
@@ -228,7 +284,7 @@ export default function AdminPortal() {
                 <button
                   onClick={() => setActiveTab('integrations')}
                   className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                    activeTab === 'integrations' ? 'bg-[#FF8C00] text-white' : 'bg-white/5 text-gray-300'
+                    activeTab === 'integrations' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
                   }`}
                 >
                   ربط جوجل وورك سبيس 🔒
@@ -345,7 +401,7 @@ export default function AdminPortal() {
                             {/* Notes Editor */}
                             <td className="p-4">
                               {editingId === sub.id ? (
-                                <div className="space-y-2">
+                                <div className="space-y-2 text-right">
                                   <textarea
                                     value={editNotes}
                                     onChange={(e) => setEditNotes(e.target.value)}
@@ -353,16 +409,16 @@ export default function AdminPortal() {
                                     className="w-full p-2 bg-slate-950 border border-white/10 rounded-lg text-xs text-white resize-none"
                                     placeholder="اكتب تفاصيل المكالمة والترتيب هنا..."
                                   />
-                                  <div className="flex gap-1.5">
+                                  <div className="flex gap-1.5 justify-start">
                                     <button
                                       onClick={() => handleSaveNotes(sub.id)}
-                                      className="px-2 py-1 bg-emerald-600 rounded text-[10px] font-bold text-white"
+                                      className="px-2 py-1 bg-emerald-600 rounded text-[10px] font-bold text-white cursor-pointer"
                                     >
                                       حفظ
                                     </button>
                                     <button
                                       onClick={() => setEditingId(null)}
-                                      className="px-2 py-1 bg-white/5 rounded text-[10px] text-gray-300"
+                                      className="px-2 py-1 bg-white/5 rounded text-[10px] text-gray-300 cursor-pointer"
                                     >
                                       إلغاء
                                     </button>
@@ -396,63 +452,94 @@ export default function AdminPortal() {
 
             {/* Tab 2: Integrations dashboard */}
             {activeTab === 'integrations' && (
-              <div className="bg-slate-900 border border-white/5 rounded-2xl p-6 sm:p-8 space-y-6">
+              <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 space-y-8">
                 <div className="border-b border-white/5 pb-4">
                   <h3 className="text-lg font-bold flex items-center gap-2">
                     <Database className="w-5 h-5 text-orange-500" />
-                    <span>تكاملات ومزامنة جوجل السحابية المدمجة (Google Workspace Sync)</span>
+                    <span>إعدادات الربط السحابي والمزامنة (Google Workspace & Webhooks Config)</span>
                   </h3>
                   <p className="text-xs text-gray-400 mt-1">
-                    جميع الحجوزات يتم مزامنتها تلقائياً مع نظام الإدارة الداخلي الخاص بوكالة دومايا من خلال ترخيص OAuth وتكاملات Google APIs:
+                    قم بتكوين إعدادات الربط مع ملف جوجل شيتس أو النموذج التلقائي (Google Form Webhook) وموقع وكالة دومايا:
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {/* Google Sheets */}
-                  <div className="bg-slate-950 p-5 rounded-xl border border-emerald-500/10 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-emerald-400 uppercase font-mono bg-emerald-500/10 px-2 py-0.5 rounded">مفعل ونشط ✓</span>
-                      <FileSpreadsheet className="w-6 h-6 text-emerald-500" />
+                <form onSubmit={handleSaveGoogleConfig} className="space-y-6 text-right">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Google Sheets Spreadsheet ID */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">معرف جدول البيانات (Google Spreadsheet ID)</label>
+                      <input
+                        type="text"
+                        placeholder="مثال: 1a2b3c4d5e6f7g8h9i..."
+                        value={googleConfig.spreadsheetId}
+                        onChange={(e) => setGoogleConfig(prev => ({ ...prev, spreadsheetId: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-gray-500 block">المعرف الفريد لملف Google Sheets الخاص بك من الرابط المتصفح.</span>
                     </div>
-                    <h4 className="font-bold text-white text-sm">مجدول بيانات جوجل (Google Sheets)</h4>
-                    <p className="text-[11px] text-gray-400 leading-relaxed">
-                      يتم تصدير أي طلب حجز فوراً إلى ملف المبيعات المشترك عيادة عيادة لتسهيل المتابعة الفورية للعملاء.
-                    </p>
-                    <div className="text-[9px] font-mono text-gray-500 bg-white/[0.02] p-1.5 rounded truncate">
-                      Sheet: domya_doctors_crm_v2_2026
+
+                    {/* Google OAuth / API Access Token */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">رمز الدخول البرمجي (API Access Token)</label>
+                      <input
+                        type="password"
+                        placeholder="أدخل رمز Google OAuth Access Token..."
+                        value={googleConfig.accessToken}
+                        onChange={(e) => setGoogleConfig(prev => ({ ...prev, accessToken: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-gray-500 block">رمز المرور الخاص بـ Google APIs لتخطي الحماية والمزامنة.</span>
                     </div>
                   </div>
 
-                  {/* Gmail API */}
-                  <div className="bg-slate-950 p-5 rounded-xl border border-blue-500/10 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-blue-400 uppercase font-mono bg-blue-500/10 px-2 py-0.5 rounded">مفعل ونشط ✓</span>
-                      <Mail className="w-6 h-6 text-blue-500" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Custom Google Forms / Apps Script Webhook URL */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">رابط جوجل فورم / ويبهوك (Google Form Webhook URL)</label>
+                      <input
+                        type="url"
+                        placeholder="https://script.google.com/macros/s/.../exec"
+                        value={googleConfig.webhookUrl}
+                        onChange={(e) => setGoogleConfig(prev => ({ ...prev, webhookUrl: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-gray-500 block">رابط Webhook / Apps Script لإرسال البيانات مباشرة وتخزينها في نموذج جوجل.</span>
                     </div>
-                    <h4 className="font-bold text-white text-sm">بريد إلكتروني مزدوج (Gmail API)</h4>
-                    <p className="text-[11px] text-gray-400 leading-relaxed">
-                      إرسال رسالة آلية لتأكيد الاستلام وتوجيه الطبيب للخطوة القادمة، مع إرسال بريد تنبيهي فوري لمدير مشروع دومايا.
-                    </p>
-                    <div className="text-[9px] font-mono text-gray-500 bg-white/[0.02] p-1.5 rounded truncate">
-                      Sender: Contact@domya.net
+
+                    {/* Leads Receiver Email */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">البريد الإلكتروني لاستقبال الإشعارات (Receiver Email)</label>
+                      <input
+                        type="email"
+                        placeholder="Contact@domya.net"
+                        value={googleConfig.receiverEmail}
+                        onChange={(e) => setGoogleConfig(prev => ({ ...prev, receiverEmail: e.target.value }))}
+                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
+                      />
+                      <span className="text-[10px] text-gray-500 block">البريد الخاص بوكالة دومايا الذي سيتلقى استمارات الحجز الجديدة فوراً.</span>
                     </div>
                   </div>
 
-                  {/* Google Tasks / Calendar */}
-                  <div className="bg-slate-950 p-5 rounded-xl border border-orange-500/10 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-orange-400 uppercase font-mono bg-orange-500/10 px-2 py-0.5 rounded">مفعل ونشط ✓</span>
-                      <CheckSquare className="w-6 h-6 text-orange-500" />
-                    </div>
-                    <h4 className="font-bold text-white text-sm">مهام المتابعة (Google Tasks API)</h4>
-                    <p className="text-[11px] text-gray-400 leading-relaxed">
-                      يتم تعيين مهمة تذكيرية فورية لمدير مبيعات دومايا على تقويم جوجل للاتصال بالطبيب في غضون 24 ساعة بدون أي إخفاق.
-                    </p>
-                    <div className="text-[9px] font-mono text-gray-500 bg-white/[0.02] p-1.5 rounded truncate">
-                      Tasklist: Domya Doctors Followups
-                    </div>
+                  <div className="pt-4 flex justify-start">
+                    <button
+                      type="submit"
+                      disabled={savingConfig}
+                      className="px-8 py-3.5 bg-[#FF5100] hover:bg-orange-600 rounded-xl font-bold transition text-xs sm:text-sm text-white flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-500/20"
+                    >
+                      {savingConfig ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                          <span>جاري الحفظ...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-4 h-4" />
+                          <span>حفظ إعدادات الربط والمزامنة السحابية</span>
+                        </>
+                      )}
+                    </button>
                   </div>
-                </div>
+                </form>
 
                 <div className="p-4 bg-orange-500/5 rounded-xl border border-orange-500/15 flex items-start gap-3">
                   <Sparkles className="w-5 h-5 text-orange-400 flex-shrink-0 mt-0.5" />

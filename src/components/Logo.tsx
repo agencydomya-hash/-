@@ -33,21 +33,21 @@ export default function Logo({ className = '', iconOnly = false, light = false }
           />
           <path
             d="M32 25H58C72 25 80 34 80 50C80 66 72 75 58 75H32V25Z"
-            stroke="#FF8C00"
+            stroke="#FF5100"
             strokeWidth="9"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
             d="M45 40H54V60H45"
-            stroke={light ? "#FFFFFF" : "#1A2B5B"}
+            stroke={light ? "#FFFFFF" : "#091B65"}
             strokeWidth="7"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
           <path
             d="M58 35L68 50L58 65"
-            stroke="#FF8C00"
+            stroke="#FF5100"
             strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -59,10 +59,10 @@ export default function Logo({ className = '', iconOnly = false, light = false }
         <div className="flex flex-col select-none text-right">
           <span 
             className={`font-inter font-black text-xl tracking-wide leading-none ${
-              light ? 'text-white' : 'text-[#1A2B5B]'
+              light ? 'text-white' : 'text-[#091B65]'
             }`}
           >
-            Domya <span className="text-[#FF8C00]">Agency</span>
+            Domya <span className="text-[#FF5100]">Agency</span>
           </span>
           <span 
             className={`text-[8px] font-sans tracking-[0.16em] uppercase font-bold leading-none mt-1.5 ${

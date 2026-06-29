@@ -9,6 +9,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -338,6 +339,52 @@ app.post("/api/diagnose", async (req, res) => {
   }
 });
 
+// Helper for sending real emails using SMTP/Gmail
+async function sendRealEmail(to: string, subject: string, body: string, receiverEmailConfig?: string) {
+  const smtpUser = process.env.SMTP_USER || "";
+  const smtpPass = process.env.SMTP_PASS || "";
+  const fallbackSender = receiverEmailConfig || "Contact@domya.net";
+  
+  // Always log locally
+  const logFile = path.join(process.cwd(), "email_logs.json");
+  let logs: any[] = [];
+  if (fs.existsSync(logFile)) {
+    try { logs = JSON.parse(fs.readFileSync(logFile, "utf-8")); } catch {}
+  }
+  logs.push({
+    id: `log_mail_${Date.now()}`,
+    timestamp: new Date().toISOString(),
+    to,
+    subject,
+    body,
+    sentViaSmtp: !!(smtpUser && smtpPass)
+  });
+  fs.writeFileSync(logFile, JSON.stringify(logs, null, 2));
+
+  if (smtpUser && smtpPass) {
+    try {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: smtpUser,
+          pass: smtpPass
+        }
+      });
+      await transporter.sendMail({
+        from: `"Domya Agency" <${smtpUser}>`,
+        to,
+        subject,
+        text: body
+      });
+      console.log(`[SMTP] Email successfully sent to ${to}`);
+    } catch (err) {
+      console.error("[SMTP] Failed to send email via SMTP, logged to file:", err);
+    }
+  } else {
+    console.log(`[SIMULATOR] Email simulation logged to file. (SMTP credentials missing in environment)`);
+  }
+}
+
 // 2. Form Submission API (Booking consultation)
 app.post("/api/submit", async (req, res) => {
   try {
@@ -367,9 +414,10 @@ app.post("/api/submit", async (req, res) => {
     submissions.push(newSubmission);
     saveSubmissions(submissions);
 
+    const gConfig = loadGoogleConfig();
+
     // Try to sync with Google Sheets in real-time
     try {
-      const gConfig = loadGoogleConfig();
       if (gConfig && gConfig.spreadsheetId && gConfig.accessToken) {
         const rowValues = [
           newSubmission.id,
@@ -412,45 +460,45 @@ app.post("/api/submit", async (req, res) => {
       console.error("Google Sheets background sync error:", sheetErr);
     }
 
-    // Dual email logging: 1) confirmation to doctor, 2) details to agency
-    const logFile = path.join(process.cwd(), "email_logs.json");
-    let logs: any[] = [];
-    if (fs.existsSync(logFile)) {
+    // Try to sync with Google Forms / Apps Script Webhook in real-time
+    const targetReceiver = gConfig.receiverEmail || "Contact@domya.net";
+    if (gConfig && gConfig.webhookUrl) {
       try {
-        logs = JSON.parse(fs.readFileSync(logFile, "utf-8"));
-      } catch {}
+        console.log(`Triggering webhook sync: ${gConfig.webhookUrl}`);
+        await fetch(gConfig.webhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event: "new_lead",
+            lead: newSubmission
+          })
+        });
+        console.log("Webhook sync completed successfully.");
+      } catch (webhookErr) {
+        console.error("Webhook synchronization error:", webhookErr);
+      }
     }
 
-    // Email 1: Confirmation email to the doctor
-    const doctorEmailLog = {
-      id: `log_confirm_${Date.now()}`,
-      type: "client_confirmation",
-      timestamp: new Date().toISOString(),
-      to: email !== "غير محدد" ? email : "(لم يُقدَّم بريد إلكتروني)",
-      subject: `✅ تأكيد استلام حجزك — وكالة دومايا للتسويق الطبي`,
-      body: `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\n\nسيقوم مستشار تسويق من فريق دومايا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة.\n\nمع خالص التحية،\nفريق وكالة دومايا\nContact@domya.net | +201090121000`
-    };
+    // Send Real Emails using Nodemailer helper
+    const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دومايا للتسويق الطبي`;
+    const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دومايا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دومايا\nContact@domya.net | +201090121000`;
 
-    // Email 2: Full details notification to agency
-    const agencyEmailLog = {
-      id: `log_agency_${Date.now()}`,
-      type: "agency_notification",
-      timestamp: new Date().toISOString(),
-      to: "Contact@domya.net",
-      subject: `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`,
-      body: `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`
-    };
+    const agencySubject = `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`;
+    const agencyBody = `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`;
 
-    logs.push(doctorEmailLog);
-    logs.push(agencyEmailLog);
-    fs.writeFileSync(logFile, JSON.stringify(logs, null, 2));
+    // 1. To doctor
+    if (email && email !== "غير محدد") {
+      await sendRealEmail(email, doctorSubject, doctorBody, targetReceiver);
+    }
+    // 2. To agency (configured email)
+    await sendRealEmail(targetReceiver, agencySubject, agencyBody, targetReceiver);
 
     res.json({
       success: true,
       submission: newSubmission,
       emailConfirmation: {
         clientEmail: email !== "غير محدد" ? email : null,
-        agencyEmail: "Contact@domya.net",
+        agencyEmail: targetReceiver,
         sentAt: new Date().toISOString()
       }
     });
@@ -465,14 +513,16 @@ app.post("/api/submit", async (req, res) => {
 // Save Google Sheets Config
 app.post("/api/google/config", (req, res) => {
   try {
-    const { auth, accessToken, spreadsheetId } = req.body;
+    const { auth, accessToken, spreadsheetId, webhookUrl, receiverEmail } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
-    if (!accessToken || !spreadsheetId) {
-      return res.status(400).json({ error: "يرجى إرسال الرمز التعريفي ومعرف الجدول." });
-    }
-    saveGoogleConfig({ accessToken, spreadsheetId });
+    saveGoogleConfig({ 
+      accessToken: accessToken || "", 
+      spreadsheetId: spreadsheetId || "",
+      webhookUrl: webhookUrl || "",
+      receiverEmail: receiverEmail || "Contact@domya.net"
+    });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "فشل حفظ إعدادات جوجل." });
@@ -489,7 +539,9 @@ app.get("/api/google/config", (req, res) => {
     const config = loadGoogleConfig();
     res.json({
       spreadsheetId: config.spreadsheetId || "",
-      hasToken: !!config.accessToken
+      accessToken: config.accessToken || "",
+      webhookUrl: config.webhookUrl || "",
+      receiverEmail: config.receiverEmail || "Contact@domya.net"
     });
   } catch (err) {
     res.status(500).json({ error: "فشل قراءة إعدادات جوجل شيتس." });
@@ -699,11 +751,15 @@ async function startServer() {
   // Integrate Vite for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { 
+        middlewareMode: true,
+        watch: { usePolling: true }
+      },
       appType: "spa",
+      optimizeDeps: { force: true }
     });
     app.use(vite.middlewares);
-    console.log("Vite development middleware mounted.");
+    console.log("Vite development middleware mounted with force-reload.");
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));

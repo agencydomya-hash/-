@@ -15,7 +15,7 @@ interface HeroProps {
 
 export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps) {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#0a1128] via-[#101b3d] to-[#1A2B5B] py-20 lg:py-28 text-white" id="hero-section">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#050B24] via-[#071133] to-[#091B65] py-20 lg:py-28 text-white" id="hero-section">
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-orange-500/20 aurora-blob"></div>
       <div className="absolute bottom-1/3 right-1/3 translate-x-1/2 w-[400px] h-[400px] rounded-full bg-blue-500/15 aurora-blob-2"></div>
 
@@ -40,7 +40,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
               className="text-4xl sm:text-5xl lg:text-6xl font-sans font-bold tracking-tight leading-tight"
             >
               حضورك الرقمي يدخل <br />
-              <span className="text-[#FF8C00] drop-shadow-md">العيادة قبلك!</span>
+              <span className="text-[#FF5100] drop-shadow-md">العيادة قبلك!</span>
             </motion.h1>
 
             <motion.p
@@ -61,7 +61,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
             >
               <button
                 onClick={onStartDiagnosis}
-                className="px-8 py-4 bg-[#FF8C00] hover:bg-orange-600 text-white font-semibold rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 group text-lg"
+                className="px-8 py-4 bg-[#FF5100] hover:bg-orange-600 text-white font-semibold rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 group text-lg"
                 id="btn-ai-diagnosis"
               >
                 <span>ابدأ التشخيص الرقمي الفوري</span>
@@ -88,7 +88,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
                 <div className="text-xs sm:text-sm text-gray-400 mt-1">سنوات خبرة تسويقية</div>
               </div>
               <div className="border-x border-white/10">
-                <div className="text-2xl sm:text-3xl font-bold text-[#FF8C00] font-mono">+50</div>
+                <div className="text-2xl sm:text-3xl font-bold text-[#FF5100] font-mono">+50</div>
                 <div className="text-xs sm:text-sm text-gray-400 mt-1">طبيب وعيادة متميزة</div>
               </div>
               <div>
@@ -134,7 +134,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
                   </p>
                 </div>
 
-                <div className="bg-white/5 p-3 rounded-xl border-r-4 border-[#FF8C00] border border-white/5">
+                <div className="bg-white/5 p-3 rounded-xl border-r-4 border-[#FF5100] border border-white/5">
                   <span className="text-[10px] font-bold text-orange-300 block uppercase font-mono">الملاحظة (Diagnosis)</span>
                   <p className="text-xs font-medium text-gray-200 mt-1 leading-relaxed">
                     المرضى الآن يفحصون الملف الرقمي للطبيب وقصص نجاحه وصور عيادته بالفيديو قبل اتخاذ قرار الحجز.
