@@ -44,7 +44,21 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
 
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
-  const [result, setResult] = useState<DiagnosisOutput | null>(null);
+  const [result, setResult] = useState<DiagnosisOutput | null>(() => {
+    const saved = localStorage.getItem('domya_doctor_diagnosis');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setTimeout(() => {
+          onDiagnosisComplete(parsed);
+        }, 100);
+        return parsed;
+      } catch (err) {
+        return null;
+      }
+    }
+    return null;
+  });
   const [error, setError] = useState('');
 
   const loadingMessages = [
@@ -464,8 +478,10 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
 
                 <button
                   onClick={() => {
+                    localStorage.removeItem('domya_doctor_diagnosis');
                     setResult(null);
                     setForm({ name: '', specialty: '', clinicDetails: '', struggle: '', targetAudience: '' });
+                    onDiagnosisComplete(null as any);
                   }}
                   className="w-full sm:w-auto px-6 py-3.5 bg-transparent hover:bg-gray-100 text-gray-500 font-medium rounded-xl transition duration-300 flex items-center justify-center gap-2 text-sm border border-gray-200"
                   id="redo-diagnosis"

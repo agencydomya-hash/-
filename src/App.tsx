@@ -15,21 +15,29 @@ import DiagnosisTool from './components/DiagnosisTool';
 import Services from './components/Services';
 import ReelsGallery from './components/ReelsGallery';
 import BookingForm from './components/BookingForm';
-import Testimonials from './components/Testimonials';
 import AdminPortal from './components/AdminPortal';
 import Footer from './components/Footer';
 
 export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
-  const [completedDiagnosis, setCompletedDiagnosis] = useState<DiagnosisOutput | null>(null);
+  const [completedDiagnosis, setCompletedDiagnosis] = useState<DiagnosisOutput | null>(() => {
+    const saved = localStorage.getItem('domya_doctor_diagnosis');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (err) {
+        return null;
+      }
+    }
+    return null;
+  });
 
   // References to scroll targets
   const diagnosisRef = useRef<HTMLDivElement>(null);
   const bookingRef = useRef<HTMLDivElement>(null);
   const servicesRef = useRef<HTMLDivElement>(null);
   const reelsRef = useRef<HTMLDivElement>(null);
-  const testimonialsRef = useRef<HTMLDivElement>(null);
 
   const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
@@ -48,10 +56,18 @@ export default function App() {
 
   const handleDiagnosisComplete = (diagnosis: DiagnosisOutput) => {
     setCompletedDiagnosis(diagnosis);
+    if (diagnosis) {
+      localStorage.setItem('domya_doctor_diagnosis', JSON.stringify(diagnosis));
+    } else {
+      localStorage.removeItem('domya_doctor_diagnosis');
+    }
   };
 
   const handleSelectBookingWithDiagnosis = (diagnosis: DiagnosisOutput) => {
     setCompletedDiagnosis(diagnosis);
+    if (diagnosis) {
+      localStorage.setItem('domya_doctor_diagnosis', JSON.stringify(diagnosis));
+    }
     setTimeout(() => {
       scrollTo(bookingRef);
     }, 100);
@@ -81,12 +97,6 @@ export default function App() {
                 className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
               >
                 معرض سينما العيادة
-              </button>
-              <button 
-                onClick={() => { scrollTo(testimonialsRef); setShowAdmin(false); }} 
-                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
-              >
-                شركاء النجاح من الأطباء
               </button>
               <button 
                 onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
@@ -166,12 +176,6 @@ export default function App() {
                   معرض سينما العيادة
                 </button>
                 <button
-                  onClick={() => scrollTo(testimonialsRef)}
-                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
-                >
-                  شركاء النجاح من الأطباء
-                </button>
-                <button
                   onClick={() => scrollTo(bookingRef)}
                   className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
                 >
@@ -231,11 +235,6 @@ export default function App() {
         {/* 5. Doctors cinematic Reels multimedia section */}
         <div ref={reelsRef}>
           <ReelsGallery />
-        </div>
-
-        {/* 6. Success Stories / Doctor Testimonials */}
-        <div ref={testimonialsRef}>
-          <Testimonials />
         </div>
 
         {/* 7. Clinical Reservation / Booking Form */}

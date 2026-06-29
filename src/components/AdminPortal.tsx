@@ -10,12 +10,14 @@ import { DoctorSubmission } from '../types';
 
 export default function AdminPortal() {
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return sessionStorage.getItem('domya_admin_auth') === 'true';
+  });
   const [submissions, setSubmissions] = useState<DoctorSubmission[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'leads' | 'integrations'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'integrations' | 'content'>('leads');
   
   // Custom states for editing notes
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,6 +31,108 @@ export default function AdminPortal() {
     receiverEmail: 'Contact@domya.net'
   });
   const [savingConfig, setSavingConfig] = useState(false);
+
+  // States for Reels CMS
+  const [reels, setReels] = useState<any[]>([]);
+  const [loadingReels, setLoadingReels] = useState(false);
+  const [editingReel, setEditingReel] = useState<any | null>(null);
+  const [reelForm, setReelForm] = useState({
+    id: '',
+    specialty: '',
+    doctorName: '',
+    title: '',
+    views: '10K',
+    coverColor: 'from-[#091B65] to-[#FF5100]',
+    length: 15,
+    qualityPillars: ['', '', ''],
+    subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو'
+  });
+
+  const fetchReels = async () => {
+    setLoadingReels(true);
+    try {
+      const response = await fetch('/api/reels');
+      if (response.ok) {
+        const data = await response.json();
+        setReels(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch reels:', err);
+    } finally {
+      setLoadingReels(false);
+    }
+  };
+
+  const handleDeleteReel = async (id: string) => {
+    if (!window.confirm('هل أنت متأكد من حذف هذا الفيديو من المعرض؟')) return;
+    try {
+      const response = await fetch(`/api/reels/${id}?auth=domya2026`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReels(data.reels || []);
+        showSuccess('تم حذف الفيديو بنجاح من المعرض! 🎥');
+      } else {
+        setError('فشل حذف الفيديو.');
+      }
+    } catch (err) {
+      setError('خطأ في الاتصال بالخادم لحذف الفيديو.');
+    }
+  };
+
+  const handleSaveReel = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reelForm.doctorName || !reelForm.specialty || !reelForm.title) {
+      alert('برجاء ملء الحقول الأساسية للفيديو.');
+      return;
+    }
+
+    // Parse subtitles text to array
+    const parsedSubtitles = reelForm.subtitlesText
+      .split('\n')
+      .map(line => {
+        const index = line.indexOf(':');
+        if (index === -1) return null;
+        const time = parseFloat(line.substring(0, index).trim());
+        const text = line.substring(index + 1).trim();
+        return isNaN(time) ? null : { time, text };
+      })
+      .filter((s): s is { time: number; text: string } => s !== null);
+
+    const updatedReel = {
+      id: reelForm.id || `reel_${Date.now()}`,
+      specialty: reelForm.specialty,
+      doctorName: reelForm.doctorName,
+      title: reelForm.title,
+      views: reelForm.views,
+      coverColor: reelForm.coverColor,
+      length: Number(reelForm.length),
+      qualityPillars: reelForm.qualityPillars.filter(p => p.trim() !== ''),
+      subtitles: parsedSubtitles
+    };
+
+    try {
+      const response = await fetch('/api/reels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auth: 'domya2026',
+          reel: updatedReel
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setReels(data.reels || []);
+        setEditingReel(null);
+        showSuccess('تم حفظ فيديو المعرض بنجاح! 🎥');
+      } else {
+        setError('فشل حفظ الفيديو.');
+      }
+    } catch (err) {
+      setError('خطأ في الاتصال بالخادم لحفظ الفيديو.');
+    }
+  };
 
   const fetchGoogleConfig = async () => {
     try {
@@ -48,8 +152,20 @@ export default function AdminPortal() {
   };
 
   useEffect(() => {
+    if (isAuthenticated) {
+      fetchSubmissions();
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     if (isAuthenticated && activeTab === 'integrations') {
       fetchGoogleConfig();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'content') {
+      fetchReels();
     }
   }, [isAuthenticated, activeTab]);
 
@@ -80,9 +196,9 @@ export default function AdminPortal() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password === 'domya2026') {
+      sessionStorage.setItem('domya_admin_auth', 'true');
       setIsAuthenticated(true);
       setError('');
-      fetchSubmissions();
     } else {
       setError('كلمة المرور غير صحيحة. برجاء مراجعة الرمز السري لوكالة دومايا.');
     }
@@ -288,6 +404,14 @@ export default function AdminPortal() {
                   }`}
                 >
                   ربط جوجل وورك سبيس 🔒
+                </button>
+                <button
+                  onClick={() => setActiveTab('content')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
+                    activeTab === 'content' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
+                  }`}
+                >
+                  إدارة فيديوهات المعرض 🎥
                 </button>
               </div>
 
@@ -550,6 +674,245 @@ export default function AdminPortal() {
                     </p>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Tab 3: Reels CMS */}
+            {activeTab === 'content' && (
+              <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
+                <div className="border-b border-white/5 pb-4 flex justify-between items-center flex-wrap gap-4">
+                  <div className="text-right">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-orange-500" />
+                      <span>إدارة معرض فيديوهات السينما الطبية (Reels CMS)</span>
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      أضف فيديوهات ميديا سينمائية جديدة، عدّل ميزاتها الطبية وعناوينها، أو احذفها للتحكم في المعرض العام بالكامل:
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setEditingReel({ isNew: true });
+                      setReelForm({
+                        id: '',
+                        specialty: 'جراحة العظام والمفاصل 🦴',
+                        doctorName: 'د. ',
+                        title: '',
+                        views: '100K',
+                        coverColor: 'from-[#091B65] to-[#FF5100]',
+                        length: 15,
+                        qualityPillars: ['', '', ''],
+                        subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو'
+                      });
+                    }}
+                    className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1"
+                  >
+                    <span>إضافة فيديو جديد لمعرض السينما 🎥</span>
+                  </button>
+                </div>
+
+                {editingReel ? (
+                  /* Add / Edit Reel Form */
+                  <form onSubmit={handleSaveReel} className="glass p-6 rounded-2xl space-y-4 text-right">
+                    <h4 className="text-sm font-bold text-orange-400 border-b border-white/5 pb-2">
+                      {editingReel.isNew ? 'إضافة فيديو جديد للمعرض' : `تعديل فيديو: ${reelForm.title}`}
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">اسم الطبيب</label>
+                        <input
+                          type="text"
+                          required
+                          value={reelForm.doctorName}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, doctorName: e.target.value }))}
+                          placeholder="مثال: د. أحمد الشريف"
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">التخصص الطبي والرموز التعبيرية</label>
+                        <input
+                          type="text"
+                          required
+                          value={reelForm.specialty}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, specialty: e.target.value }))}
+                          placeholder="مثال: جراحة العظام والمفاصل 🦴"
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="block text-xs font-bold text-gray-300">عنوان الفيديو (الخطاف التسويقي)</label>
+                        <input
+                          type="text"
+                          required
+                          value={reelForm.title}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, title: e.target.value }))}
+                          placeholder="مثال: خرافة طقطقة الرقبة.. هل بتسبب خشونة فعلاً؟"
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">عدد المشاهدات (المحاكي)</label>
+                        <input
+                          type="text"
+                          required
+                          value={reelForm.views}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, views: e.target.value }))}
+                          placeholder="مثال: 124K"
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">تدرج الألوان (Tailwind classes)</label>
+                        <input
+                          type="text"
+                          required
+                          value={reelForm.coverColor}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, coverColor: e.target.value }))}
+                          placeholder="from-[#091B65] to-[#FF5100]"
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs font-mono outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-xs font-bold text-gray-300">مدة الفيديو (بالثواني)</label>
+                        <input
+                          type="number"
+                          required
+                          value={reelForm.length}
+                          onChange={(e) => setReelForm(prev => ({ ...prev, length: Number(e.target.value) }))}
+                          className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quality Pillars */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">ميزات الإنتاج وجودة الفيمبروداكشن (3 نقاط)</label>
+                      <div className="space-y-2">
+                        {reelForm.qualityPillars.map((pillar, idx) => (
+                          <input
+                            key={idx}
+                            type="text"
+                            required
+                            placeholder={`ميزة الإنتاج رقم ${idx + 1}`}
+                            value={pillar}
+                            onChange={(e) => {
+                              const updated = [...reelForm.qualityPillars];
+                              updated[idx] = e.target.value;
+                              setReelForm(prev => ({ ...prev, qualityPillars: updated }));
+                            }}
+                            className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Subtitles text block */}
+                    <div className="space-y-2">
+                      <label className="block text-xs font-bold text-gray-300">الكلام المكتوب ومواقيت الظهور (Subtitles Transcription)</label>
+                      <textarea
+                        rows={4}
+                        required
+                        value={reelForm.subtitlesText}
+                        onChange={(e) => setReelForm(prev => ({ ...prev, subtitlesText: e.target.value }))}
+                        placeholder="أدخل الوقت متبوعاً بالثواني والنص، سطر بكل جملة. مثال:&#10;0: طقطقة الرقبة والظهر.. حركة بنعملها كلنا&#10;3: بس هل الحركة دي بتضر فعلاً؟"
+                        className="w-full p-3 rounded-xl border border-white/10 bg-slate-950 text-white text-xs font-mono outline-none focus:ring-1 focus:ring-[#FF5100] resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 justify-start pt-2">
+                      <button
+                        type="submit"
+                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
+                      >
+                        حفظ بيانات الفيديو
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingReel(null)}
+                        className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 font-bold rounded-xl text-xs transition cursor-pointer"
+                      >
+                        إلغاء التعديل
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  /* Reels List */
+                  <div className="space-y-4">
+                    {loadingReels ? (
+                      <div className="p-12 text-center text-gray-400 text-xs">جاري سحب بيانات الفيديوهات من الخادم...</div>
+                    ) : reels.length === 0 ? (
+                      <div className="p-12 text-center text-gray-400 text-xs">مفيش أي فيديوهات مسجلة في المعرض لغاية دلوقتي. اضغط على إضافة فيديو جديد بالأعلى.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {reels.map((reel) => (
+                          <div
+                            key={reel.id}
+                            className="bg-slate-950/80 p-5 rounded-2xl border border-white/5 flex flex-col justify-between hover:border-orange-500/20 transition text-right"
+                          >
+                            <div className="space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[9px] bg-white/5 border border-white/10 text-gray-400 px-2 py-0.5 rounded font-mono">
+                                  ID: {reel.id}
+                                </span>
+                                <span className="text-[10px] font-bold text-orange-400 font-mono">
+                                  {reel.views} مشاهدة 👁️
+                                </span>
+                              </div>
+                              <h4 className="font-bold text-white text-sm line-clamp-1">{reel.title}</h4>
+                              <p className="text-gray-400 text-[11px] font-semibold">{reel.doctorName} — {reel.specialty}</p>
+                              <div className="text-[10px] text-gray-500 font-mono">المدة: {reel.length} ثانية | عدد الجمل المكتوبة: {reel.subtitles?.length || 0}</div>
+                            </div>
+
+                            <div className="flex gap-2 mt-4 pt-4 border-t border-white/5">
+                              <button
+                                onClick={() => {
+                                  setEditingReel(reel);
+                                  setReelForm({
+                                    id: reel.id,
+                                    specialty: reel.specialty,
+                                    doctorName: reel.doctorName,
+                                    title: reel.title,
+                                    views: reel.views,
+                                    coverColor: reel.coverColor || 'from-[#091B65] to-[#FF5100]',
+                                    length: reel.length,
+                                    qualityPillars: [
+                                      reel.qualityPillars?.[0] || '',
+                                      reel.qualityPillars?.[1] || '',
+                                      reel.qualityPillars?.[2] || ''
+                                    ],
+                                    subtitlesText: (reel.subtitles || [])
+                                      .map((s: any) => `${s.time}: ${s.text}`)
+                                      .join('\n')
+                                  });
+                                }}
+                                className="flex-1 py-2 bg-orange-600/10 hover:bg-orange-600/20 border border-orange-500/20 text-[#FF5100] text-xs font-bold rounded-xl transition cursor-pointer text-center"
+                              >
+                                تعديل
+                              </button>
+                              <button
+                                onClick={() => handleDeleteReel(reel.id)}
+                                className="px-3 py-2 bg-red-950/20 hover:bg-red-950/40 border border-red-500/20 text-red-400 text-xs font-bold rounded-xl transition cursor-pointer"
+                              >
+                                حذف
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
