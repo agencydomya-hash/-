@@ -1,0 +1,6 @@
+{
+  "name": "Remix: Domya Doctor Branding Kit",
+  "description": "A professional branding tool for doctors featuring diagnostic-style landing pages, AI digital presence diagnosis, and booking forms to establish digital authority.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
