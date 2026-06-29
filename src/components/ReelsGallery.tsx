@@ -369,10 +369,11 @@ export default function ReelsGallery() {
                         <video
                           ref={videoRef}
                           src={selectedReel?.videoUrl || "/uploads/1782738053406_5.mp4"}
+                          poster={selectedReel?.coverUrl || "/uploads/1782738201126_473188690_598630842913487_4523441016009157157_n.jpg"}
                           className="absolute inset-0 w-full h-full object-cover z-0"
                           autoPlay={isPlaying}
                           loop
-                          muted
+                          muted={false}
                           playsInline
                           style={{ filter: isPlaying ? 'none' : 'brightness(0.85)' }}
                         />
