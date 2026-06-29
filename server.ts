@@ -21,16 +21,8 @@ const PORT = 3000;
 const getRedirectUri = (req: express.Request): string => {
   const host = req.get("host") || "";
   // Check if we are running in local development mode or accessed locally
-  const isLocal = host.includes("localhost") || host.includes("127.0.0.1") || process.env.NODE_ENV !== "production";
-  
-  if (isLocal) {
-    // Force localhost redirect
-    const localHost = host.includes("localhost") || host.includes("127.0.0.1") ? host : "localhost:3000";
-    return `http://${localHost}/api/google/callback`;
-  }
-  // Otherwise, use APP_URL env variable if defined, or fallback to current host
-  if (process.env.APP_URL) {
-    return `${process.env.APP_URL}/api/google/callback`;
+  if (host.includes("localhost") || host.includes("127.0.0.1") || process.env.NODE_ENV !== "production") {
+    return `http://localhost:3000/api/google/callback`;
   }
   const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
   return `${protocol}://${host}/api/google/callback`;

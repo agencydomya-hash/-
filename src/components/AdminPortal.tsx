@@ -260,13 +260,14 @@ export default function AdminPortal() {
 
   const handleGoogleLogin = async () => {
     try {
-      const response = await fetch('/api/google/auth-url');
+      // Append a unique timestamp query parameter to bypass aggressive browser caching
+      const response = await fetch('/api/google/auth-url?t=' + Date.now());
       if (response.ok) {
         const data = await response.json();
         // Redirect browser to Google Authorization Page
         window.location.href = data.url;
       } else {
-        alert('فشل توليد رابط المصادقة من جوجل. تأكد من إعداد APP_URL في السيرفر.');
+        alert('فشل توليد رابط المصادقة من جوجل.');
       }
     } catch (err) {
       console.error(err);
