@@ -6,6 +6,37 @@
   --font-sans: 'Cairo', 'Tajawal', ui-sans-serif, system-ui, sans-serif;
   --font-inter: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Overrides for standard orange to match Domya brand colors */
+  --color-orange-50: #FFF5F2;
+  --color-orange-100: #FFE6E0;
+  --color-orange-200: #FFC2B3;
+  --color-orange-300: #FF9E85;
+  --color-orange-400: #FF7A3D;
+  --color-orange-500: #FF5100;
+  --color-orange-600: #D94400;
+  --color-orange-700: #B33800;
+  --color-orange-800: #8C2C00;
+  --color-orange-900: #662000;
+
+  /* Overrides for standard blues/navies to match Domya brand colors */
+  --color-blue-50: #F4F6F9;
+  --color-blue-100: #E6ECF4;
+  --color-blue-200: #C2D1E5;
+  --color-blue-300: #9EB6D5;
+  --color-blue-400: #5780B5;
+  --color-blue-500: #0E3696;
+  --color-blue-600: #0B2B78;
+  --color-blue-700: #09205A;
+  --color-blue-800: #091B65;
+  --color-blue-900: #07154B;
+  --color-blue-950: #050B24;
+
+  /* Overrides for slate/gray to maintain deep brand backgrounds */
+  --color-slate-900: #091B65;
+  --color-slate-950: #050B24;
+
+  /* Specific brand aliases */
   --color-domya-navy: #091B65;
   --color-domya-navy-deep: #050B24;
   --color-domya-orange: #FF5100;
