@@ -17,7 +17,14 @@ export default function AdminPortal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'leads' | 'integrations' | 'content'>('leads');
+  const [activeTab, setActiveTab] = useState<'leads' | 'integrations' | 'content'>(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam === 'integrations' || tabParam === 'content') {
+      return tabParam;
+    }
+    return 'leads';
+  });
   
   // Custom states for editing notes
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -248,6 +255,22 @@ export default function AdminPortal() {
       setError('فشل الاتصال بالخادم لحفظ الإعدادات.');
     } finally {
       setSavingConfig(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await fetch('/api/google/auth-url');
+      if (response.ok) {
+        const data = await response.json();
+        // Redirect browser to Google Authorization Page
+        window.location.href = data.url;
+      } else {
+        alert('فشل توليد رابط المصادقة من جوجل. تأكد من إعداد APP_URL في السيرفر.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('خطأ في الاتصال بالخادم لتسجيل الدخول بحساب جوجل.');
     }
   };
 
@@ -671,15 +694,24 @@ export default function AdminPortal() {
 
                     {/* Google OAuth / API Access Token */}
                     <div className="space-y-2">
-                      <label className="block text-xs font-bold text-gray-300">رمز الدخول البرمجي (API Access Token)</label>
+                      <div className="flex justify-between items-center">
+                        <label className="block text-xs font-bold text-gray-300">رمز الدخول البرمجي (API Access Token)</label>
+                        <button
+                          type="button"
+                          onClick={handleGoogleLogin}
+                          className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-[10px] font-bold transition flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>🔑 تسجيل الدخول السريع مع Google</span>
+                        </button>
+                      </div>
                       <input
                         type="password"
-                        placeholder="أدخل رمز Google OAuth Access Token..."
+                        placeholder="سيتم ملء هذا الحقل تلقائياً بعد تسجيل الدخول..."
                         value={googleConfig.accessToken}
                         onChange={(e) => setGoogleConfig(prev => ({ ...prev, accessToken: e.target.value }))}
                         className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-white text-xs font-mono"
                       />
-                      <span className="text-[10px] text-gray-500 block">رمز المرور الخاص بـ Google APIs لتخطي الحماية والمزامنة.</span>
+                      <span className="text-[10px] text-gray-500 block">اضغط على زر الدخول ليقوم النظام بالربط وتحديث الرمز تلقائياً بحسابك.</span>
                     </div>
                   </div>
 

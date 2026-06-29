@@ -214,18 +214,18 @@ export default function ReelsGallery() {
 
 
   return (
-    <section className="py-20 bg-[#050B24] text-white overflow-hidden border-b border-white/10" id="media-gallery">
+    <section className="py-20 bg-slate-50 text-slate-800 overflow-hidden border-b border-slate-200" id="media-gallery">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <div className="text-center mb-16 space-y-3" dir="rtl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/15 text-[#FF5100] rounded-full text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 border border-orange-200 text-[#FF5100] rounded-full text-sm font-semibold">
             <Video className="w-4 h-4" />
             <span>معرض سينما دومايا الطبية</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-white">
+          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-[#091B65]">
             شاهد جودة الميديا بروداكشن الطبي بنفسك 🎥
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-xs sm:text-sm">
+          <p className="text-slate-600 max-w-2xl mx-auto text-xs sm:text-sm">
             اضغط على أي فيديو لتشغيل "محاكي الفيديوهات الطبية" التفاعلي. بنروح لعيادتك وننتج محتوى بنفس الفخامة والسينمائية دي لتثبيت سلطتك العلمية.
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function ReelsGallery() {
             <motion.div
               key={reel.id}
               whileHover={{ y: -6, scale: 1.02 }}
-              className="bg-[#121b3a] rounded-2xl overflow-hidden border border-white/10 hover:border-orange-500/30 transition duration-300 flex flex-col justify-between"
+              className="bg-white rounded-2xl overflow-hidden border border-slate-200/60 hover:border-orange-500/30 shadow-lg hover:shadow-xl hover:shadow-slate-200/50 transition duration-300 flex flex-col justify-between"
             >
               {/* Cover Card with play overlay */}
               <div 
@@ -259,24 +259,24 @@ export default function ReelsGallery() {
                 </div>
 
                 {/* Doctor details banner */}
-                <div className="flex items-center gap-2 bg-black/20 p-2 rounded-xl border border-white/5">
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white font-bold text-xs border border-white/15">
+                <div className="flex items-center gap-2 bg-black/25 p-2 rounded-xl border border-white/10">
+                  <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center text-white font-bold text-xs border border-white/20">
                     <User className="w-4 h-4 text-orange-400" />
                   </div>
-                  <div className="text-right">
+                  <div className="text-right text-white">
                     <div className="text-xs font-bold">{reel.doctorName}</div>
-                    <div className="text-[9px] text-gray-300">ميديا معتمد من دومايا</div>
+                    <div className="text-[9px] text-gray-200">ميديا معتمد من دومايا</div>
                   </div>
                 </div>
               </div>
 
               {/* Quality pillars summary */}
-              <div className="p-5 space-y-3 bg-[#101936] border-t border-white/5 text-right">
-                <span className="text-[10px] text-orange-400 font-bold block">ميزات الإنتاج في هذا الفيديو:</span>
-                <p className="text-xs text-gray-300 line-clamp-2 leading-relaxed">{reel.qualityPillars[0]}</p>
+              <div className="p-5 space-y-3 bg-slate-50 border-t border-slate-100 text-right">
+                <span className="text-[10px] text-orange-600 font-bold block">ميزات الإنتاج في هذا الفيديو:</span>
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-semibold">{reel.qualityPillars[0]}</p>
                 <button
                   onClick={() => startReelPlayer(reel)}
-                  className="w-full py-2.5 bg-white/5 hover:bg-orange-500 hover:text-white rounded-xl text-xs font-bold text-gray-300 transition duration-300 flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-slate-100 hover:bg-orange-500 hover:text-white rounded-xl text-xs font-bold text-slate-700 hover:shadow transition duration-300 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>شغل محاكي التشغيل التفاعلي</span>
                   <Play className="w-3 h-3" />
@@ -293,7 +293,7 @@ export default function ReelsGallery() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 30 }}
-              className="mt-16 bg-[#101936] rounded-2xl border-2 border-orange-500/20 p-6 sm:p-8"
+              className="mt-16 bg-white rounded-2xl border border-slate-200 shadow-2xl p-6 sm:p-8"
               dir="rtl"
               id="reels-simulator-player"
             >
@@ -492,7 +492,7 @@ export default function ReelsGallery() {
                                 initial={{ opacity: 0, y: 5 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="text-[10px] font-bold text-yellow-300 leading-relaxed text-shadow"
+                                className="text-[10px] font-bold text-yellow-350 leading-relaxed text-shadow"
                               >
                                 {activeSubtitle || "جاري التشغيل..."}
                               </motion.p>
@@ -500,12 +500,12 @@ export default function ReelsGallery() {
                           </div>
 
                           {/* Doctor tag inside smartphone */}
-                          <div className="flex items-center justify-between border-t border-white/10 pt-1.5">
+                          <div className="flex items-center justify-between border-t border-white/15 pt-1.5">
                             <div className="flex items-center gap-1.5 text-right">
-                              <div className="w-5 h-5 rounded-full bg-[#FF5100] flex items-center justify-center text-[10px] font-bold">
+                              <div className="w-5 h-5 rounded-full bg-[#FF5100] flex items-center justify-center text-[10px] font-bold text-white">
                                 <User className="w-3 h-3" />
                               </div>
-                              <div>
+                              <div className="text-white">
                                 <div className="text-[8px] font-bold">{selectedReel.doctorName}</div>
                                 <div className="text-[7px] text-gray-300">{selectedReel.specialty.split(" ")[0]}</div>
                               </div>
@@ -516,23 +516,20 @@ export default function ReelsGallery() {
                             </span>
                           </div>
                         </div>
-
-
-
                       </>
                     ) : (
                       /* VIEW 2: SIMULATED INSTAGRAM DM AUTO-CHAT */
-                      <div className="absolute inset-0 bg-[#070b19] flex flex-col justify-between pt-12 z-30 text-right">
+                      <div className="absolute inset-0 bg-slate-50 border-r border-l border-slate-200 flex flex-col justify-between pt-12 z-30 text-right">
                         {/* DM Header */}
-                        <div className="p-3 border-b border-white/10 flex items-center justify-between bg-slate-950/80">
+                        <div className="p-3 border-b border-slate-200 flex items-center justify-between bg-white">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-[#FF5100] flex items-center justify-center font-bold text-xs">
-                              {selectedReel.doctorName[3]}
+                            <div className="w-7 h-7 rounded-full bg-[#FF5100] flex items-center justify-center font-bold text-xs text-white">
+                              {selectedReel.doctorName[3] || 'D'}
                             </div>
                             <div>
-                              <h4 className="text-[10px] font-bold text-gray-100">{selectedReel.doctorName}</h4>
-                              <div className="text-[8px] text-emerald-400 flex items-center gap-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-ping"></span>
+                              <h4 className="text-[10px] font-bold text-slate-800">{selectedReel.doctorName}</h4>
+                              <div className="text-[8px] text-emerald-600 flex items-center gap-1">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block animate-ping"></span>
                                 <span>رد تلقائي نشط ✓</span>
                               </div>
                             </div>
@@ -542,7 +539,7 @@ export default function ReelsGallery() {
                               setActiveSimulatorView('reels');
                               setIsPlaying(true);
                             }}
-                            className="text-xs text-gray-400 hover:text-white flex items-center gap-1 font-bold"
+                            className="text-xs text-slate-500 hover:text-[#091B65] flex items-center gap-1 font-bold cursor-pointer"
                           >
                             <span>رجوع</span>
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -553,31 +550,31 @@ export default function ReelsGallery() {
                         <div className="flex-grow p-3 overflow-y-auto space-y-3.5 flex flex-col justify-start">
                           
                           {/* User comment message bubble */}
-                          <div className="self-end max-w-[85%] bg-orange-600 p-2.5 rounded-2xl rounded-tr-none text-right shadow-md">
-                            <span className="text-[8px] text-orange-200 block font-bold mb-0.5">لقد علقت على فيديو Reels:</span>
+                          <div className="self-end max-w-[85%] bg-[#FF5100] p-2.5 rounded-2xl rounded-tr-none text-right shadow-sm">
+                            <span className="text-[8px] text-orange-100 block font-bold mb-0.5">لقد علقت على فيديو Reels:</span>
                             <p className="text-[10px] text-white font-semibold leading-relaxed">
                               "{receivedDM?.userComment || "روشتة"}"
                             </p>
                           </div>
 
                           {/* Doctor Automated Reply 1 */}
-                          <div className="self-start max-w-[90%] bg-slate-900 p-2.5 rounded-2xl rounded-tl-none border border-white/5 space-y-1 shadow-md">
-                            <span className="text-[8px] text-[#FF5100] font-bold block">مساعد {selectedReel.doctorName} الآلي:</span>
-                            <p className="text-[10px] text-gray-200 leading-relaxed font-semibold">
+                          <div className="self-start max-w-[90%] bg-slate-200/50 p-2.5 rounded-2xl rounded-tl-none border border-slate-200 space-y-1 shadow-sm">
+                            <span className="text-[8px] text-[#091B65] font-bold block">مساعد {selectedReel.doctorName} الآلي:</span>
+                            <p className="text-[10px] text-slate-700 leading-relaxed font-semibold">
                               أهلاً بك دكتور! نورت بروفايل العيادة 🏥.
                             </p>
-                            <p className="text-[10px] text-gray-300 leading-relaxed font-semibold">
+                            <p className="text-[10px] text-slate-600 leading-relaxed font-semibold">
                               تيم وكالة دومايا للدعاية الطبية صمم هذا الفيديو ليجلب لي عشرات المرضى يومياً بنظام ManyChat التلقائي.
                             </p>
                           </div>
 
                           {/* Doctor Automated Reply 2 with Offer */}
-                          <div className="self-start max-w-[90%] bg-slate-900 p-2.5 rounded-2xl rounded-tl-none border border-white/5 space-y-2 shadow-md">
-                            <span className="text-[8px] text-orange-400 font-bold block">العرض والروشتة الحصرية 🎁:</span>
-                            <p className="text-[10px] text-gray-200 leading-relaxed font-bold">
+                          <div className="self-start max-w-[90%] bg-slate-200/50 p-2.5 rounded-2xl rounded-tl-none border border-slate-200 space-y-2 shadow-sm">
+                            <span className="text-[8px] text-[#FF5100] font-bold block">العرض والروشتة الحصرية 🎁:</span>
+                            <p className="text-[10px] text-slate-850 leading-relaxed font-bold">
                               خصم خاص 30% على أول باقة تصوير سينمائي ومونتاج طبي شامل لعيادتك هذا الشهر!
                             </p>
-                            <ul className="text-[9px] text-gray-300 space-y-1 pr-1 border-r border-orange-500/30">
+                            <ul className="text-[9px] text-slate-600 space-y-1 pr-1 border-r border-orange-500/30">
                               <li>🎥 تصوير 4K بأحدث كاميرات السينما.</li>
                               <li>🎙️ عزل صوت وفلاتر استوديو.</li>
                               <li>✍️ كتابة محتوى طبي بالعامية الدارحة.</li>
@@ -588,7 +585,7 @@ export default function ReelsGallery() {
                           <div className="self-center w-full pt-1">
                             <button
                               onClick={handleCTABookingFromDM}
-                              className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl text-[10px] shadow-lg animate-pulse flex items-center justify-center gap-1.5"
+                              className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-[#FF5100] hover:from-orange-600 hover:to-[#D94400] text-white font-bold rounded-xl text-[10px] shadow-lg animate-pulse flex items-center justify-center gap-1.5 cursor-pointer"
                             >
                               <Check className="w-3.5 h-3.5 text-white" />
                               <span>تأكيد حجز الاستشارة المجانية مجاناً 📲</span>
@@ -598,7 +595,7 @@ export default function ReelsGallery() {
                         </div>
 
                         {/* Input bar of DM Chat (readonly) */}
-                        <div className="p-2 border-t border-white/10 bg-slate-950/90 text-center text-[9px] text-gray-500 font-bold">
+                        <div className="p-2 border-t border-slate-250 bg-white text-center text-[9px] text-slate-500 font-bold">
                           تم توليد هذه الرسائل آلياً لتوضيح قمع تسويق دومايا 🤖
                         </div>
                       </div>
@@ -608,11 +605,11 @@ export default function ReelsGallery() {
                 </div>
 
                 {/* Quality pillars and controls */}
-                <div className="lg:col-span-7 space-y-6 text-right font-sans">
+                <div className="lg:col-span-7 space-y-6 text-right font-sans text-slate-850">
                   <div>
                     <span className="text-xs text-[#FF5100] font-bold uppercase tracking-wider font-mono block">التحليل الفني للإنتاج والربط</span>
-                    <h3 className="text-2xl font-bold text-white mt-1">كيف تصنع دومايا فيديوهات بهذا التميز؟ 🎞️</h3>
-                    <p className="text-gray-300 text-xs sm:text-sm mt-2 leading-relaxed">
+                    <h3 className="text-2xl font-bold text-[#091B65] mt-1">كيف تصنع دومايا فيديوهات بهذا التميز؟ 🎞️</h3>
+                    <p className="text-slate-600 text-xs sm:text-sm mt-2 leading-relaxed">
                       الفيديو الذي تشاهده ليس مجرد كلام عشوائي، بل تم تصميمه بعناية فائقة وتتبع لمعايير الإنتاج العالمية، مع دمج **نظام الأتمتة المباشرة (Comment-to-DM Autoresponder)** لتحويل التعليقات لحجوزات حقيقية في ثوانٍ.
                     </p>
                   </div>
@@ -620,24 +617,24 @@ export default function ReelsGallery() {
                   {/* Quality Checklist */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {selectedReel.qualityPillars.map((pillar, index) => (
-                      <div key={index} className="bg-white/5 p-4 rounded-xl border border-white/5 flex gap-3 text-right">
-                        <div className="w-6 h-6 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5">
+                      <div key={index} className="bg-slate-50 p-4 rounded-xl border border-slate-200/60 flex gap-3 text-right">
+                        <div className="w-6 h-6 rounded-full bg-orange-50 text-orange-650 flex items-center justify-center font-bold text-xs flex-shrink-0 mt-0.5 border border-orange-200">
                           {index + 1}
                         </div>
-                        <p className="text-xs text-gray-200 font-semibold leading-relaxed">{pillar}</p>
+                        <p className="text-xs text-slate-700 font-semibold leading-relaxed">{pillar}</p>
                       </div>
                     ))}
                   </div>
 
                   {/* Progressive trackbar and Player control buttons */}
-                  <div className="bg-white/5 p-5 rounded-2xl border border-white/5 space-y-4">
-                    <div className="flex justify-between items-center text-xs text-gray-400 font-mono">
+                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200/60 space-y-4">
+                    <div className="flex justify-between items-center text-xs text-slate-500 font-mono">
                       <span>المدة: 0:{selectedReel.length}</span>
                       <span>جاري المحاكاة: 0:{Math.floor(currentTime).toString().padStart(2, '0')}</span>
                     </div>
 
                     {/* Custom progress slider */}
-                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden relative">
+                    <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden relative">
                       <div 
                         className="h-full bg-gradient-to-r from-orange-500 to-[#FF5100] transition-all duration-300"
                         style={{ width: `${(currentTime / selectedReel.length) * 100}%` }}
@@ -650,7 +647,7 @@ export default function ReelsGallery() {
                         <button
                           onClick={togglePlay}
                           disabled={activeSimulatorView === 'dm'}
-                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5"
+                          className="px-4 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer"
                         >
                           {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                           <span>{isPlaying ? "إيقاف مؤقت" : "تشغيل المحاكي"}</span>
@@ -659,15 +656,15 @@ export default function ReelsGallery() {
                         <button
                           onClick={handleReset}
                           disabled={activeSimulatorView === 'dm'}
-                          className="px-3 py-2 bg-white/10 hover:bg-white/15 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-gray-300 transition flex items-center gap-1.5"
+                          className="px-3 py-2 bg-slate-200 hover:bg-slate-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-xs font-bold text-slate-700 transition flex items-center gap-1.5 cursor-pointer"
                         >
                           <RefreshCw className="w-3.5 h-3.5" />
                           <span>إعادة التشغيل</span>
                         </button>
                       </div>
 
-                      <div className="text-[10px] text-gray-400 font-bold flex items-center gap-1.5">
-                        <Award className="w-4 h-4 text-orange-400" />
+                      <div className="text-[10px] text-slate-500 font-bold flex items-center gap-1.5">
+                        <Award className="w-4 h-4 text-[#FF5100]" />
                         <span>تقييم الدقة التسويقية: 10/10 الأقوى</span>
                       </div>
                     </div>

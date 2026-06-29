@@ -35,6 +35,17 @@ export default function App() {
     return null;
   });
 
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('google_auth_success') === 'true') {
+      sessionStorage.setItem('domya_admin_auth', 'true');
+      setShowAdmin(true);
+      // Clean up URL search query parameters without reloading
+      const cleanUrl = window.location.pathname + (urlParams.get('tab') ? `?tab=${urlParams.get('tab')}` : '');
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }, []);
+
   // References to scroll targets
   const diagnosisRef = useRef<HTMLDivElement>(null);
   const bookingRef = useRef<HTMLDivElement>(null);
@@ -76,10 +87,10 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050b18] font-sans text-white overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 overflow-x-hidden">
       
       {/* Premium Header / Navigation */}
-      <header className="sticky top-0 z-50 bg-[#050b18]/60 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/10" id="main-header">
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-sm shadow-slate-100" id="main-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
@@ -90,19 +101,19 @@ export default function App() {
             <nav className="hidden md:flex items-center gap-8">
               <button 
                 onClick={() => { scrollTo(servicesRef); setShowAdmin(false); }} 
-                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
+                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 أعراض الكشف والحلول
               </button>
               <button 
                 onClick={() => { scrollTo(reelsRef); setShowAdmin(false); }} 
-                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
+                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 معرض سينما العيادة
               </button>
               <button 
                 onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
-                className="text-gray-300 hover:text-white font-bold text-xs sm:text-sm transition"
+                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 حجز الزيارة المجانية
               </button>
@@ -161,25 +172,25 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-white/5 bg-[#050b18]"
+              className="md:hidden border-t border-slate-200 bg-white shadow-lg"
               id="mobile-navigation-panel"
             >
               <div className="px-4 py-6 space-y-4 flex flex-col items-stretch">
                 <button
-                  onClick={() => scrollTo(servicesRef)}
-                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
+                  onClick={() => { scrollTo(servicesRef); setMobileMenuOpen(false); }}
+                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
                 >
                   أعراض الكشف والحلول
                 </button>
                 <button
-                  onClick={() => scrollTo(reelsRef)}
-                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
+                  onClick={() => { scrollTo(reelsRef); setMobileMenuOpen(false); }}
+                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
                 >
                   معرض سينما العيادة
                 </button>
                 <button
-                  onClick={() => scrollTo(bookingRef)}
-                  className="py-2.5 text-gray-300 hover:text-white font-bold text-sm block border-b border-white/5"
+                  onClick={() => { scrollTo(bookingRef); setMobileMenuOpen(false); }}
+                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
                 >
                   حجز الزيارة المجانية
                 </button>
@@ -187,7 +198,7 @@ export default function App() {
                 <div className="pt-4 flex flex-col gap-3">
                   <button
                     onClick={() => { scrollTo(diagnosisRef); setMobileMenuOpen(false); }}
-                    className="w-full py-3 bg-[#FF8C00] hover:bg-orange-600 text-white font-bold rounded-xl text-center text-sm"
+                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
                   >
                     التشخيص الذكي الفوري
                   </button>

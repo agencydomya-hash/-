@@ -14,7 +14,18 @@ import nodemailer from "nodemailer";
 dotenv.config();
 
 const app = express();
+app.set("trust proxy", true); // Trust the reverse proxy (Cloud Run load balancer) to parse secure/https correctly
 const PORT = 3000;
+
+// Reusable helper to dynamically construct the redirect URI based on client request
+const getRedirectUri = (req: express.Request): string => {
+  if (process.env.APP_URL) {
+    return `${process.env.APP_URL}/api/google/callback`;
+  }
+  const host = req.get("host"); // e.g. "localhost:3000" or custom cloud run URL
+  const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+  return `${protocol}://${host}/api/google/callback`;
+};
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
@@ -185,6 +196,96 @@ function saveGoogleConfig(config: any) {
     fs.writeFileSync(GOOGLE_CONFIG_FILE, JSON.stringify(config, null, 2));
   } catch (err) {
     console.error("Error saving google config:", err);
+  }
+}
+
+// Google OAuth Application Credentials (provided by environment variables)
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+
+// Auto-refreshes Google Access Token if a refresh token is present
+async function refreshGoogleAccessToken(): Promise<string | null> {
+  const config = loadGoogleConfig();
+  if (!config.refreshToken) {
+    console.log("[Google API] No refresh token found, cannot refresh access token.");
+    return null;
+  }
+
+  try {
+    console.log("[Google API] Attempting to refresh access token using refresh token...");
+    const tokenUrl = "https://oauth2.googleapis.com/token";
+    const params = new URLSearchParams();
+    params.append("client_id", GOOGLE_CLIENT_ID);
+    params.append("client_secret", GOOGLE_CLIENT_SECRET);
+    params.append("refresh_token", config.refreshToken);
+    params.append("grant_type", "refresh_token");
+
+    const tokenRes = await fetch(tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: params.toString()
+    });
+
+    if (!tokenRes.ok) {
+      console.error("[Google API] Token refresh request failed:", await tokenRes.text());
+      return null;
+    }
+
+    const tokens = await tokenRes.json();
+    config.accessToken = tokens.access_token;
+    saveGoogleConfig(config);
+    console.log("[Google API] Access token refreshed successfully.");
+    return tokens.access_token;
+  } catch (err) {
+    console.error("[Google API] Error refreshing Google access token:", err);
+    return null;
+  }
+}
+
+// Unified Google Sheets row sync helper (handles token expiry automatically)
+async function syncToGoogleSheets(rowValues: any[]): Promise<boolean> {
+  const config = loadGoogleConfig();
+  if (!config.spreadsheetId || !config.accessToken) {
+    return false;
+  }
+
+  const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${config.spreadsheetId}/values/A1:append?valueInputOption=USER_ENTERED`;
+  
+  try {
+    let response = await fetch(sheetUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${config.accessToken}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        values: [rowValues]
+      })
+    });
+
+    if (response.status === 401) {
+      console.log("[Google API] Access token unauthorized (likely expired). Refreshing...");
+      const newTok = await refreshGoogleAccessToken();
+      if (newTok) {
+        response = await fetch(sheetUrl, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${newTok}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            values: [rowValues]
+          })
+        });
+      }
+    }
+
+    return response.ok;
+  } catch (err) {
+    console.error("[Google API] Google Sheets API error:", err);
+    return false;
   }
 }
 
@@ -424,44 +525,31 @@ app.post("/api/submit", async (req, res) => {
 
     const gConfig = loadGoogleConfig();
 
-    // Try to sync with Google Sheets in real-time
+     // Try to sync with Google Sheets in real-time
     try {
-      if (gConfig && gConfig.spreadsheetId && gConfig.accessToken) {
-        const rowValues = [
-          newSubmission.id,
-          `د. ${newSubmission.name}`,
-          newSubmission.specialty,
-          newSubmission.clinicName,
-          newSubmission.phone,
-          newSubmission.email,
-          newSubmission.socialLink,
-          newSubmission.goal,
-          "جديد",
-          new Date(newSubmission.createdAt).toLocaleString("ar-EG"),
-          ""
-        ];
+      const rowValues = [
+        newSubmission.id,
+        `د. ${newSubmission.name}`,
+        newSubmission.specialty,
+        newSubmission.clinicName,
+        newSubmission.phone,
+        newSubmission.email,
+        newSubmission.socialLink,
+        newSubmission.goal,
+        "جديد",
+        new Date(newSubmission.createdAt).toLocaleString("ar-EG"),
+        ""
+      ];
 
-        const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${gConfig.spreadsheetId}/values/A1:append?valueInputOption=USER_ENTERED`;
-        const sheetRes = await fetch(sheetUrl, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${gConfig.accessToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            values: [rowValues]
-          })
-        });
-
-        if (sheetRes.ok) {
-          newSubmission.synced = true;
-          // Save with updated sync status
-          const updatedSubmissions = loadSubmissions();
-          const subIdx = updatedSubmissions.findIndex((s: any) => s.id === newSubmission.id);
-          if (subIdx !== -1) {
-            updatedSubmissions[subIdx].synced = true;
-            saveSubmissions(updatedSubmissions);
-          }
+      const synced = await syncToGoogleSheets(rowValues);
+      if (synced) {
+        newSubmission.synced = true;
+        // Save with updated sync status
+        const updatedSubmissions = loadSubmissions();
+        const subIdx = updatedSubmissions.findIndex((s: any) => s.id === newSubmission.id);
+        if (subIdx !== -1) {
+          updatedSubmissions[subIdx].synced = true;
+          saveSubmissions(updatedSubmissions);
         }
       }
     } catch (sheetErr) {
@@ -569,14 +657,13 @@ app.post("/api/google/sync-pending", async (req, res) => {
     }
 
     const config = loadGoogleConfig();
-    const tokenToUse = accessToken || config.accessToken;
     const sheetId = config.spreadsheetId;
 
-    if (!tokenToUse || !sheetId) {
+    if (!sheetId) {
       return res.status(400).json({ error: "لم يتم ربط جدول بيانات جوجل شيتس بعد." });
     }
 
-    // Update config with fresh token if sent
+    // Update config with fresh token if sent manually
     if (accessToken) {
       config.accessToken = accessToken;
       saveGoogleConfig(config);
@@ -606,19 +693,8 @@ app.post("/api/google/sync-pending", async (req, res) => {
           sub.notes || ""
         ];
 
-        const sheetUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/A1:append?valueInputOption=USER_ENTERED`;
-        const sheetRes = await fetch(sheetUrl, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${tokenToUse}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            values: [rowValues]
-          })
-        });
-
-        if (sheetRes.ok) {
+        const synced = await syncToGoogleSheets(rowValues);
+        if (synced) {
           sub.synced = true;
           successCount++;
         }
@@ -635,6 +711,76 @@ app.post("/api/google/sync-pending", async (req, res) => {
   } catch (err) {
     console.error("Bulk sync error:", err);
     res.status(500).json({ error: "فشل مزامنة البيانات المعلقة." });
+  }
+});
+
+// Google OAuth Authorization Request URL
+app.get("/api/google/auth-url", (req, res) => {
+  try {
+    const redirectUri = getRedirectUri(req);
+    const authUrl = `https://accounts.google.com/o/oauth2/auth?` + 
+      `client_id=${GOOGLE_CLIENT_ID}` + 
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` + 
+      `&response_type=code` + 
+      `&scope=${encodeURIComponent("https://www.googleapis.com/auth/spreadsheets")}` + 
+      `&access_type=offline` + 
+      `&prompt=consent`;
+    res.json({ url: authUrl });
+  } catch (err) {
+    console.error("Auth URL generation error:", err);
+    res.status(550).json({ error: "Failed to generate authorization URL" });
+  }
+});
+
+// Google OAuth Authorization Code Callback
+app.get("/api/google/callback", async (req, res) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.status(400).send("Authorization code is missing.");
+  }
+
+  const redirectUri = getRedirectUri(req);
+
+  try {
+    const tokenUrl = "https://oauth2.googleapis.com/token";
+    const params = new URLSearchParams();
+    params.append("code", code as string);
+    params.append("client_id", GOOGLE_CLIENT_ID);
+    params.append("client_secret", GOOGLE_CLIENT_SECRET);
+    params.append("redirect_uri", redirectUri);
+    params.append("grant_type", "authorization_code");
+
+    const tokenRes = await fetch(tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: params.toString()
+    });
+
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      throw new Error(`Token exchange failed: ${errText}`);
+    }
+
+    const tokens = await tokenRes.json();
+    const { access_token, refresh_token } = tokens;
+
+    // Save to google_config.json
+    const config = loadGoogleConfig();
+    config.accessToken = access_token;
+    if (refresh_token) {
+      config.refreshToken = refresh_token;
+    }
+    saveGoogleConfig(config);
+
+    console.log("[Google OAuth] Successfully authorized with client secret and stored refresh token.");
+
+    // Redirect back to front-end admin dashboard tab
+    res.redirect("/?google_auth_success=true&tab=integrations");
+  } catch (err: any) {
+    console.error("OAuth callback error:", err);
+    res.status(500).send(`Failed to authenticate with Google: ${err.message}`);
   }
 });
 

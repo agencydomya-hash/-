@@ -129,17 +129,17 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
   };
 
   return (
-    <div className="bg-transparent py-16 border-y border-white/5" id="diagnosis-tool">
+    <div className="bg-white py-16 border-y border-slate-200" id="diagnosis-tool">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-12 space-y-3" dir="rtl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-100/10 border border-orange-500/30 text-orange-400 rounded-full text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 border border-orange-200 text-[#FF5100] rounded-full text-sm font-semibold">
             <Stethoscope className="w-4 h-4" />
             <span>التشخيص الرقمي الفوري بالذكاء الاصطناعي</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-white">
+          <h2 className="text-3xl sm:text-4xl font-sans font-bold text-[#091B65]">
             احصل على روشتة حضورك الرقمي الآن مجاناً!
           </h2>
-          <p className="text-gray-300 max-w-2xl mx-auto text-sm sm:text-base">
+          <p className="text-slate-650 max-w-2xl mx-auto text-sm sm:text-base">
             جاوب على 5 أسئلة سريرية بسيطة، ليقوم نظامنا المدعوم بالذكاء الاصطناعي وخبرات فريق دومايا بصياغة روشتة براندنج مخصصة لعيادتك فوراً.
           </p>
         </div>
@@ -151,13 +151,13 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="glass p-6 sm:p-10 rounded-3xl shadow-2xl border border-white/5 text-right text-white"
+              className="bg-slate-50 p-6 sm:p-10 rounded-3xl shadow-xl border border-slate-200/60 text-right text-slate-800"
               dir="rtl"
               id="diagnosis-form-wrapper"
             >
               <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                  <div className="p-4 bg-red-950/50 border border-red-500/30 text-red-400 text-sm rounded-lg">
+                  <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg font-semibold">
                     {error}
                   </div>
                 )}
@@ -165,7 +165,7 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Name */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-bold text-gray-300">الاسم الكريم</label>
+                    <label className="block text-sm font-bold text-slate-700">الاسم الكريم</label>
                     <input
                       type="text"
                       name="name"
@@ -173,7 +173,7 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                       placeholder="مثال: د. محمد العشري"
                       value={form.name}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-white placeholder-gray-500"
+                      className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-slate-800 placeholder-slate-400 focus:bg-white"
                     />
                   </div>
 
@@ -193,17 +193,17 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
 
                 {/* Specialty Selection */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-300">تخصصك الطبي</label>
+                  <label className="block text-sm font-bold text-slate-700">تخصصك الطبي</label>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {COMMON_SPECIALTIES.map((spec, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleSelectSpecialty(spec)}
-                        className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition border ${
+                        className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition border cursor-pointer ${
                           form.specialty === spec
                             ? 'bg-orange-500 text-white border-orange-500 shadow-md shadow-orange-500/20'
-                            : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100/85 hover:text-slate-800 shadow-sm'
                         }`}
                       >
                         {spec}
@@ -217,42 +217,42 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                     placeholder="أو اكتب تخصصك مخصصاً هنا..."
                     value={form.specialty}
                     onChange={handleInputChange}
-                    className="w-full mt-2 px-4 py-3 rounded-xl border border-white/10 bg-white/5 focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-white placeholder-gray-500"
+                    className="w-full mt-2 px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-slate-800 placeholder-slate-400 focus:bg-white"
                   />
                 </div>
 
                 {/* Target Audience */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-300">مين هو جمهورك أو مريضك المستهدف بالتحديد؟</label>
+                  <label className="block text-sm font-bold text-slate-700">مين هو جمهورك أو مريضك المستهدف بالتحديد؟</label>
                   <input
                     type="text"
                     name="targetAudience"
                     placeholder="مثال: الأمهات الجدد، الرياضيين، المهتمين بعمليات النحت والتجميل"
                     value={form.targetAudience}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/5 focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-white placeholder-gray-500"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white focus:ring-2 focus:ring-[#FF5100] focus:border-[#FF5100] transition outline-none text-slate-800 placeholder-slate-400 focus:bg-white"
                   />
                 </div>
 
                 {/* Struggle / Symptom Selection */}
                 <div className="space-y-2">
-                  <label className="block text-sm font-bold text-gray-300">إيه أكتر تحدي أو عَرَض بتعاني منه في السوشيال ميديا؟</label>
+                  <label className="block text-sm font-bold text-slate-700">إيه أكتر تحدي أو عَرَض بتعاني منه في السوشيال ميديا؟</label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                     {COMMON_STRUGGLES.map((struggleItem) => (
                       <button
                         key={struggleItem.id}
                         type="button"
                         onClick={() => handleSelectStruggle(struggleItem.label)}
-                        className={`p-4 rounded-xl text-right text-xs sm:text-sm font-medium transition border flex items-start gap-2.5 ${
+                        className={`p-4 rounded-xl text-right text-xs sm:text-sm font-medium transition border flex items-start gap-2.5 cursor-pointer ${
                           form.struggle === struggleItem.label
-                            ? 'bg-orange-500/10 border-orange-500 text-white ring-2 ring-orange-500/20'
-                            : 'bg-white/5 text-gray-300 border-white/10 hover:bg-white/10'
+                            ? 'bg-orange-50/50 border-orange-500 text-slate-900 ring-2 ring-orange-500/20'
+                            : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100/85 hover:text-slate-800 shadow-sm'
                         }`}
                       >
                         <span className={`w-4 h-4 rounded-full border flex-shrink-0 mt-0.5 flex items-center justify-center ${
                           form.struggle === struggleItem.label
                             ? 'border-orange-500 bg-orange-500 text-white'
-                            : 'border-white/20'
+                            : 'border-slate-350'
                         }`}>
                           {form.struggle === struggleItem.label && <span className="w-1.5 h-1.5 bg-white rounded-full"></span>}
                         </span>
