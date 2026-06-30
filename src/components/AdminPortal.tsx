@@ -127,7 +127,8 @@ export default function AdminPortal() {
           body: JSON.stringify({
             auth: 'domya2026',
             fileName: uniqueFileName,
-            fileData: base64Data
+            fileData: base64Data,
+            fileType: file.type
           })
         });
 

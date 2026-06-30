@@ -6,6 +6,7 @@ import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config();
 
@@ -913,10 +914,10 @@ app.get("/api/google/callback", async (req, res) => {
 
 // Dynamic Video Reference Manager Endpoints
 
-// File Upload API
-app.post("/api/upload", (req, res) => {
+// File Upload API — uses Cloudinary when env vars are set, falls back to local disk in dev
+app.post("/api/upload", async (req, res) => {
   try {
-    const { auth, fileName, fileData } = req.body;
+    const { auth, fileName, fileData, fileType } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
@@ -924,15 +925,41 @@ app.post("/api/upload", (req, res) => {
       return res.status(400).json({ error: "بيانات الملف ناقصة." });
     }
 
-    const buffer = Buffer.from(fileData, 'base64');
-    const uploadsDir = path.join(process.cwd(), "uploads");
-    const filePath = path.join(uploadsDir, fileName);
-    
-    fs.writeFileSync(filePath, buffer);
-    res.json({ success: true, url: `/uploads/${fileName}` });
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (cloudName && apiKey && apiSecret) {
+      // === Cloudinary Upload (Production / Vercel) ===
+      cloudinary.config({ cloud_name: cloudName, api_key: apiKey, api_secret: apiSecret });
+
+      const isVideo = fileType && fileType.startsWith('video');
+      const dataUri = `data:${fileType || 'image/jpeg'};base64,${fileData}`;
+
+      const result = await cloudinary.uploader.upload(dataUri, {
+        resource_type: isVideo ? 'video' : 'image',
+        public_id: `domya/${Date.now()}_${fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`,
+        overwrite: true,
+      });
+
+      return res.json({ success: true, url: result.secure_url });
+    } else {
+      // === Local Disk Upload (Development) ===
+      const buffer = Buffer.from(fileData, 'base64');
+      const uploadsDir = path.join(process.cwd(), "uploads");
+      const filePath = path.join(uploadsDir, fileName);
+      try {
+        if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+        fs.writeFileSync(filePath, buffer);
+      } catch (fsErr) {
+        console.error("Local disk write failed:", fsErr);
+        return res.status(500).json({ error: "فشل رفع الملف على القرص المحلي. تأكد من إضافة CLOUDINARY env vars على Vercel." });
+      }
+      return res.json({ success: true, url: `/uploads/${fileName}` });
+    }
   } catch (err: any) {
     console.error("Upload error:", err);
-    res.status(500).json({ error: "فشل رفع الملف." });
+    res.status(500).json({ error: `فشل رفع الملف: ${err.message}` });
   }
 });
 
