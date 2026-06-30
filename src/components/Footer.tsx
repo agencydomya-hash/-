@@ -96,7 +96,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2.5 justify-start">
                 <Mail className="w-4 h-4 text-orange-400 flex-shrink-0" />
-                <a href="mailto:Contact@domya.net" className="hover:text-[#FF5100] transition font-mono">Contact@domya.net</a>
+                <a href="mailto:agencydomya@gmail.com" className="hover:text-[#FF5100] transition font-mono">agencydomya@gmail.com</a>
               </li>
             </ul>
           </div>
