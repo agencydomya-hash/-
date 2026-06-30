@@ -1106,7 +1106,6 @@ export default function AdminPortal() {
                               <input
                                 key={idx}
                                 type="text"
-                                required
                                 placeholder={`ميزة الإنتاج رقم ${idx + 1}`}
                                 value={pillar}
                                 onChange={(e) => {
@@ -1125,7 +1124,6 @@ export default function AdminPortal() {
                           <label className="block text-xs font-bold text-gray-300">الكلام المكتوب ومواقيت الظهور (Subtitles Transcription)</label>
                           <textarea
                             rows={4}
-                            required
                             value={reelForm.subtitlesText}
                             onChange={(e) => setReelForm(prev => ({ ...prev, subtitlesText: e.target.value }))}
                             placeholder="أدخل الوقت متبوعاً بالثواني والنص، سطر بكل جملة. مثال:&#10;0: طقطقة الرقبة والظهر.. حركة بنعملها كلنا&#10;3: بس هل الحركة دي بتضر فعلاً؟"
