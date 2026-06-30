@@ -11,36 +11,34 @@
   --color-orange-50: #FFF5F2;
   --color-orange-100: #FFE6E0;
   --color-orange-200: #FFC2B3;
-  --color-orange-300: #FF9E85;
-  --color-orange-400: #FF7A3D;
-  --color-orange-500: #FF5100;
-  --color-orange-600: #D94400;
-  --color-orange-700: #B33800;
-  --color-orange-800: #8C2C00;
-  --color-orange-900: #662000;
+  --color-orange-350: #FF6B35;
+  --color-orange-500: #FF6B35;
+  --color-orange-600: #E55A2B;
 
-  /* Overrides for standard blues/navies to match Domya brand colors */
+  /* Overrides for standard blues/navies */
   --color-blue-50: #F4F6F9;
-  --color-blue-100: #E6ECF4;
-  --color-blue-200: #C2D1E5;
-  --color-blue-300: #9EB6D5;
-  --color-blue-400: #5780B5;
-  --color-blue-500: #0E3696;
-  --color-blue-600: #0B2B78;
-  --color-blue-700: #09205A;
-  --color-blue-800: #091B65;
-  --color-blue-900: #07154B;
-  --color-blue-950: #050B24;
+  --color-blue-100: #E0E7FF;
+  --color-blue-500: #003D7A;
+  --color-blue-600: #002A57;
+  
+  --color-domya-navy: #003D7A;
+  --color-domya-orange: #FF6B35;
+}
 
-  /* Overrides for slate/gray to maintain deep brand backgrounds */
-  --color-slate-900: #091B65;
-  --color-slate-950: #050B24;
-
-  /* Specific brand aliases */
-  --color-domya-navy: #091B65;
-  --color-domya-navy-deep: #050B24;
-  --color-domya-orange: #FF5100;
-  --color-domya-orange-light: #FF7A3D;
+:root {
+  --primary-blue: #003D7A;
+  --accent-orange: #FF6B35;
+  --light-bg: #F0F4F8;
+  --dark-text: #2C3E50;
+  --white: #FFFFFF;
+  --light-gray: #E5E7EB;
+  --success-green: #10B981;
+  --warning-red: #EF4444;
+  
+  /* Hover states */
+  --orange-hover: #E55A2B;
+  --blue-hover: #002A57;
+  --blue-light: #E0E7FF;
 }
 
 @layer base {
@@ -53,6 +51,8 @@
     font-family: var(--font-sans);
     line-height: 1.8;
     overflow-x: hidden;
+    background-color: var(--light-bg);
+    color: var(--dark-text);
   }
   h1, h2, h3, h4, h5, h6 {
     line-height: 1.4;
@@ -71,32 +71,32 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #050B24;
+    background: var(--light-bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #FF5100, #091B65);
+    background: linear-gradient(180deg, var(--accent-orange), var(--primary-blue));
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #FF5100;
+    background: var(--accent-orange);
   }
 }
 
 @keyframes aurora-glow {
   0%, 100% {
-    opacity: 0.4;
+    opacity: 0.1;
     transform: translate(0, 0) scale(1);
   }
   25% {
-    opacity: 0.6;
+    opacity: 0.15;
     transform: translate(30px, -20px) scale(1.1);
   }
   50% {
-    opacity: 0.3;
+    opacity: 0.08;
     transform: translate(-20px, 20px) scale(0.95);
   }
   75% {
-    opacity: 0.5;
+    opacity: 0.12;
     transform: translate(10px, 10px) scale(1.05);
   }
 }
@@ -114,26 +114,37 @@
 }
 
 .glass {
-  background: rgba(13, 26, 66, 0.55); /* Tinted with brand deep navy */
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--light-gray);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 ::selection {
-  background-color: #FF8C00;
+  background-color: var(--accent-orange);
   color: white;
 }
 
 @media print {
   .no-print { display: none !important; }
   body { background: white; color: black; }
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee-scroll 25s linear infinite;
 }

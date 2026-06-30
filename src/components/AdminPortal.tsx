@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Users, RefreshCw, CheckCircle, FileSpreadsheet, Lock, AlertCircle, Sparkles, CheckSquare, Mail, ClipboardList, Database } from 'lucide-react';
+import { Shield, Users, RefreshCw, CheckCircle, FileSpreadsheet, Lock, AlertCircle, Sparkles, CheckSquare, Mail, ClipboardList, Database, Globe } from 'lucide-react';
 import { DoctorSubmission } from '../types';
 
 export default function AdminPortal() {
@@ -41,6 +41,13 @@ export default function AdminPortal() {
   });
   const [savingConfig, setSavingConfig] = useState(false);
 
+  // States for Success Partners
+  const [partners, setPartners] = useState<any[]>([]);
+  const [uploadingPartner, setUploadingPartner] = useState(false);
+  const [newPartnerName, setNewPartnerName] = useState('');
+  const [editingPartnerIdx, setEditingPartnerIdx] = useState<number | null>(null);
+  const [tempPartnerName, setTempPartnerName] = useState('');
+
   // States for Reels CMS
   const [reels, setReels] = useState<any[]>([]);
   const [loadingReels, setLoadingReels] = useState(false);
@@ -62,12 +69,46 @@ export default function AdminPortal() {
     coverUrl: ''
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'cover') => {
+  const fetchPartners = async () => {
+    try {
+      const response = await fetch('/api/partners');
+      if (response.ok) {
+        const data = await response.json();
+        const normalized = data.map((p: any) => 
+          typeof p === 'string' ? { logoUrl: p, name: '' } : p
+        );
+        setPartners(normalized);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const savePartnersList = async (updatedPartners: any[]) => {
+    try {
+      const response = await fetch('/api/partners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          auth: 'domya2026',
+          partners: updatedPartners
+        })
+      });
+      if (!response.ok) {
+        alert('فشل حفظ قائمة الشركاء على السيرفر.');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'cover' | 'partner') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (type === 'video') setUploadingVideo(true);
-    else setUploadingCover(true);
+    else if (type === 'cover') setUploadingCover(true);
+    else setUploadingPartner(true);
 
     try {
       const reader = new FileReader();
@@ -91,9 +132,16 @@ export default function AdminPortal() {
           if (type === 'video') {
             setReelForm(prev => ({ ...prev, videoUrl: data.url }));
             alert('تم رفع ملف الفيديو بنجاح! 🎥');
-          } else {
+          } else if (type === 'cover') {
             setReelForm(prev => ({ ...prev, coverUrl: data.url }));
             alert('تم رفع صورة الغلاف بنجاح! 🖼️');
+          } else {
+            const newLogoObj = { logoUrl: data.url, name: newPartnerName || '' };
+            const updatedList = [...partners, newLogoObj];
+            setPartners(updatedList);
+            await savePartnersList(updatedList);
+            setNewPartnerName('');
+            alert('تم إضافة شعار العميل بنجاح! 🤝');
           }
         } else {
           alert('فشل رفع الملف على السيرفر.');
@@ -105,7 +153,8 @@ export default function AdminPortal() {
       alert('حدث خطأ أثناء معالجة رفع الملف.');
     } finally {
       if (type === 'video') setUploadingVideo(false);
-      else setUploadingCover(false);
+      else if (type === 'cover') setUploadingCover(false);
+      else setUploadingPartner(false);
     }
   };
 
@@ -231,6 +280,7 @@ export default function AdminPortal() {
   useEffect(() => {
     if (isAuthenticated && activeTab === 'content') {
       fetchReels();
+      fetchPartners();
     }
   }, [isAuthenticated, activeTab]);
 
@@ -1118,6 +1168,136 @@ export default function AdminPortal() {
                     )}
                   </div>
                 )}
+
+                {/* Partners Logos CMS Ticker Management */}
+                <div className="mt-12 pt-12 border-t border-white/5 space-y-6">
+                  <div className="text-right">
+                    <h4 className="text-sm font-bold text-orange-400 flex items-center gap-2 justify-end">
+                      <Globe className="w-4 h-4 text-orange-500" />
+                      <span>إدارة شعارات العملاء وشركاء النجاح (Moving Ticker Logos)</span>
+                    </h4>
+                    <p className="text-xs text-gray-400 mt-1 font-semibold">
+                      ارفع شعارات جديدة للأطباء أو العيادات الشريكة لتتحرك تلقائياً في شريط شركاء النجاح بمنتصف الصفحة:
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-950/40 p-6 rounded-2xl border border-white/5 space-y-4">
+                    <div className="flex gap-4 items-center flex-wrap md:flex-nowrap border-b border-white/5 pb-4">
+                      <div className="flex-1 space-y-1 text-right w-full">
+                        <label className="block text-[11px] font-bold text-gray-300">اسم الطبيب أو العيادة (اختياري، يظهر بجوار الشعار):</label>
+                        <input
+                          type="text"
+                          placeholder="مثال: عيادة د. محمد هلال 🦴"
+                          value={newPartnerName}
+                          onChange={(e) => setNewPartnerName(e.target.value)}
+                          className="w-full px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                        />
+                      </div>
+                      <div className="shrink-0 pt-5">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleFileUpload(e, 'partner')}
+                          className="hidden"
+                          id="partner-logo-upload-input"
+                        />
+                        <label
+                          htmlFor="partner-logo-upload-input"
+                          className="px-4 py-2 bg-[#FF6B35]/25 hover:bg-[#FF6B35]/35 border border-[#FF6B35]/40 text-[#FF6B35] text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
+                        >
+                          {uploadingPartner ? 'جاري الرفع... ⏳' : 'رفع الشعار وإضافة الشريك 🤝'}
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* List of uploaded partner logos */}
+                    {partners.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4 pt-2">
+                        {partners.map((partner, idx) => (
+                          <div key={idx} className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video bg-white flex flex-col items-center justify-between p-2 pb-7 shadow-sm">
+                            <div className="flex-1 flex items-center justify-center w-full">
+                              {partner.logoUrl ? (
+                                <img src={partner.logoUrl} className="max-h-[35px] max-w-full object-contain" alt="" />
+                              ) : (
+                                <span className="text-[10px] text-gray-400 italic">بدون لوجو</span>
+                              )}
+                            </div>
+                            
+                            {editingPartnerIdx === idx ? (
+                              <div className="flex gap-1 items-center w-full mt-1 px-1">
+                                <input
+                                  type="text"
+                                  value={tempPartnerName}
+                                  onChange={(e) => setTempPartnerName(e.target.value)}
+                                  className="w-full text-[9px] px-1 py-0.5 border border-slate-300 rounded text-slate-800 bg-slate-50 font-bold text-center outline-none focus:border-orange-500"
+                                  placeholder="الاسم..."
+                                  autoFocus
+                                  onKeyDown={async (e) => {
+                                    if (e.key === 'Enter') {
+                                      const updated = [...partners];
+                                      updated[idx] = { ...updated[idx], name: tempPartnerName };
+                                      setPartners(updated);
+                                      await savePartnersList(updated);
+                                      setEditingPartnerIdx(null);
+                                    }
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const updated = [...partners];
+                                    updated[idx] = { ...updated[idx], name: tempPartnerName };
+                                    setPartners(updated);
+                                    await savePartnersList(updated);
+                                    setEditingPartnerIdx(null);
+                                  }}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white p-0.5 rounded text-[8px] font-bold shrink-0 cursor-pointer"
+                                  title="حفظ"
+                                >
+                                  ✓
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center justify-center gap-1 mt-1 w-full px-1">
+                                <span className="text-[9px] font-bold text-slate-700 truncate max-w-[80%] text-center animate-fade-in" dir="rtl">
+                                  {partner.name || <span className="text-gray-400 italic text-[8px]">بدون اسم</span>}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingPartnerIdx(idx);
+                                    setTempPartnerName(partner.name || '');
+                                  }}
+                                  className="text-orange-500 hover:text-orange-600 p-0.5 text-[8px] shrink-0 font-bold cursor-pointer transition-transform hover:scale-110"
+                                  title="تعديل الاسم ✏️"
+                                >
+                                  ✏️
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="absolute top-1 right-1 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded font-mono">
+                              #{idx + 1}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const updated = partners.filter((_, i) => i !== idx);
+                                setPartners(updated);
+                                await savePartnersList(updated);
+                              }}
+                              className="absolute inset-x-0 bottom-0 py-1 bg-red-600 hover:bg-red-700 text-white text-[9px] font-bold text-center transition cursor-pointer"
+                            >
+                              حذف الشريك
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-gray-400 italic text-center py-4">لم يتم رفع أي شعارات بعد. سيتم عرض الشعارات التجريبية الافتراضية.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </motion.div>

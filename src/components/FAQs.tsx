@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -18,7 +14,7 @@ export default function FAQs() {
   const faqs: FAQItem[] = [
     {
       q: "هل تصوير الفيديوهات الطبية بيتم داخل عيادتي؟",
-      a: "نعم، فريق الإنتاج والتصوير الكامل بوكالة دومايا بينزل لعيادتك أو مركزك الطبي ومعه أحدث كاميرات السينما (4K) والعدسات الاحترافية وإضاءة استوديو متكاملة وعزل كامل للصوت، لضمان أعلى جودة دون تشتيت لمرضاك."
+      a: "نعم، فريق الإنتاج والتصوير الكامل بوكالة دوميا بينزل لعيادتك أو مركزك الطبي ومعه أحدث كاميرات السينما (4K) والعدسات الاحترافية وإضاءة استوديو متكاملة وعزل كامل للصوت، لضمان أعلى جودة دون تشتيت لمرضاك."
     },
     {
       q: "مين اللي بيكتب ويحضر الاسكريبت الطبي للفيديوهات؟",
@@ -39,20 +35,20 @@ export default function FAQs() {
   ];
 
   return (
-    <section className="py-24 bg-transparent text-white relative z-10" id="faqs">
+    <section className="py-24 bg-transparent text-[#2C3E50] relative z-10" id="faqs">
       <div className="max-w-4xl mx-auto px-4 sm:px-6">
         
         {/* Header */}
         <div className="text-center mb-16 space-y-3" dir="rtl">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-500/10 border border-orange-500/20 text-[#FF5100] rounded-full text-xs font-semibold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#FF6B35]/10 border border-[#FF6B35]/20 text-[#FF6B35] rounded-full text-xs font-semibold">
             <HelpCircle className="w-4 h-4" />
             <span>الأسئلة الشائعة للأطباء</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-sans font-black text-white">
+          <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#003D7A]">
             إجابات لاستفساراتك حول بروتوكول التسويق 💡
           </h2>
-          <p className="text-slate-300 max-w-xl mx-auto text-xs sm:text-sm">
-            اكتشف طريقة تنظيم جلسات التصوير، كتابة المحتوى، وإعلانات زيادة حجوزات العيادة مع دومايا.
+          <p className="text-[#2C3E50] max-w-xl mx-auto text-xs sm:text-sm font-semibold">
+            اكتشف طريقة تنظيم جلسات التصوير، كتابة المحتوى، وإعلانات زيادة حجوزات العيادة مع دوميا.
           </p>
         </div>
 
@@ -63,14 +59,14 @@ export default function FAQs() {
             return (
               <div 
                 key={idx}
-                className="glass rounded-2xl overflow-hidden border border-white/[0.06] transition-colors duration-300"
+                className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
               >
                 <button
                   onClick={() => setOpenIdx(isOpen ? null : idx)}
-                  className="w-full flex items-center justify-between p-5 text-right font-bold text-xs sm:text-sm md:text-base text-white hover:text-orange-400 transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-between p-5 text-right font-bold text-xs sm:text-sm md:text-base text-[#003D7A] hover:text-[#FF6B35] transition-colors cursor-pointer"
                 >
                   <span>{faq.q}</span>
-                  {isOpen ? <ChevronUp className="w-5 h-5 text-[#FF5100]" /> : <ChevronDown className="w-5 h-5 text-slate-450" />}
+                  {isOpen ? <ChevronUp className="w-5 h-5 text-[#FF6B35]" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                 </button>
 
                 <AnimatePresence initial={false}>
@@ -81,7 +77,7 @@ export default function FAQs() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{ duration: 0.25 }}
                     >
-                      <div className="p-5 pt-0 text-xs sm:text-sm text-slate-300 leading-relaxed font-semibold border-t border-white/[0.04]">
+                      <div className="p-5 pt-0 text-xs sm:text-sm text-[#2C3E50] leading-relaxed font-semibold border-t border-[#E5E7EB] bg-[#F0F4F8]/30">
                         {faq.a}
                       </div>
                     </motion.div>

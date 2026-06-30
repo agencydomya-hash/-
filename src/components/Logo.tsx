@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React from 'react';
 import logoImg from './logo.png';
 
@@ -23,11 +18,18 @@ export default function Logo({ className = '', iconOnly = false, light = false }
         />
       </div>
       {!iconOnly && (
-        <span className={`text-xl sm:text-2xl font-black tracking-wider font-inter select-none ${
-          light ? 'text-white' : 'text-blue-800'
-        }`}>
-          DOMYA
-        </span>
+        <div className="flex flex-col text-right">
+          <span className={`text-lg sm:text-xl font-bold tracking-normal font-sans select-none leading-tight ${
+            light ? 'text-white' : 'text-[#003D7A]'
+          }`}>
+            دوميا <span className="text-[#FF6B35] font-black">DOMYA</span>
+          </span>
+          <span className={`text-[9px] font-sans tracking-widest font-bold block uppercase leading-none mt-0.5 ${
+            light ? 'text-slate-300' : 'text-slate-500'
+          }`}>
+            تطوير حضور الأطباء
+          </span>
+        </div>
       )}
     </div>
   );

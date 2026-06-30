@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
 import express from "express";
 import path from "path";
@@ -321,21 +317,89 @@ app.get("/api/health", (req, res) => {
 // 1. AI Diagnosis API (Uses Gemini 3.5 Flash server-side)
 app.post("/api/diagnose", async (req, res) => {
   try {
-    const { name, specialty, clinicDetails, struggle, targetAudience } = req.body;
+    const { name, specialty, clinicDetails, struggle, targetAudience, email, phone, clinicName, city } = req.body;
 
     if (!name || !specialty || !struggle) {
       return res.status(400).json({ error: "الرجاء إدخال الاسم، التخصص، والمشكلة الأساسية." });
     }
 
+    let finalDiagnosis: any;
     let ai;
+
     try {
       ai = getAiClient();
+      const systemInstruction = `أنت خبير براندنج تسويقي طبي محترف تعمل لدى وكالة "دوميا" (Domya Marketing Agency).
+مهمتك هي تشخيص الحضور الرقمي للطبيب (المشار إليه بالمريض) وكتابة "روشتة براندنج علاجية" (Branding Prescription) تفصيلية وعملية باللغة العربية بلهجة تجمع بين الاحترافية العلمية والروح الودية المصرية الجاذبة.
+يجب أن تركز خطتك على كيف يمكن للطبيب استخدام قوة الميديا بروداكشن الطبي وكتابة المحتوى لتبسيط المفاهيم وكسب ثقة المرضى.
+أرجع البيانات بالتنسيق والمواصفات المحددة في الـ responseSchema حصراً باللغة العربية.`;
+
+      const prompt = `الاسم: دكتور ${name}
+التخصص: ${specialty}
+تفاصيل العيادة والموقع: ${clinicDetails || 'غير محدد'}
+المشكلة الأساسية التي يعاني منها: ${struggle}
+الجمهور المستهدف: ${targetAudience || 'المرضى الباحثين عن الطمأنينة والأمان'}
+
+قم بتوليد تشخيص دقيق للحالة (Symptoms - أعراض الحضور الرقمي الضعيف) وروشتة علاجية (Prescription Rx - خطوات علاجية برقم Rx)، وخطة محتوى ذكية (Content Plan مع فكرة محورية و 3 موضوعات مخصصة تهم تخصصهم وعامة الناس)، وخطوات عمل فورية (Action Steps).`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+        config: {
+          systemInstruction,
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              symptoms: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "3-4 أعراض واضحة لضعف الحضور الرقمي بناءً على مشكلتهم"
+              },
+              prescriptionRx: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "4 خطوات علاجية تبدأ بـ Rx 01, Rx 02, Rx 03, Rx 04"
+              },
+              contentPlan: {
+                type: Type.OBJECT,
+                properties: {
+                  theme: { type: Type.STRING, description: "الفكرة العامة أو العنوان المحوري لخطة المحتوى" },
+                  topics: {
+                    type: Type.ARRAY,
+                    items: { type: Type.STRING },
+                    description: "3 موضوعات فيديوهات Reels قصيرة تفصيلية مكتوبة بصيغة جذابة ومثيرة للاهتمام"
+                  }
+                },
+                required: ["theme", "topics"]
+              },
+              actionSteps: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "3 خطوات عملية فورية يبدأ الطبيب بتنفيذها فوراً"
+              }
+            },
+            required: ["symptoms", "prescriptionRx", "contentPlan", "actionSteps"]
+          }
+        }
+      });
+
+      const responseText = response.text;
+      if (!responseText) {
+        throw new Error("Empty response from Gemini API");
+      }
+
+      const diagnosisData = JSON.parse(responseText.trim());
+      finalDiagnosis = {
+        id: `diag_${Date.now()}`,
+        patientName: name,
+        specialty,
+        ...diagnosisData,
+        createdAt: new Date().toISOString()
+      };
     } catch (apiErr: any) {
-      console.error("Gemini init error:", apiErr.message);
-      // Return beautiful simulated diagnostic if API key is missing, to preserve user experience
-      const simulatedId = `diag_${Date.now()}`;
-      return res.json({
-        id: simulatedId,
+      console.error("Gemini/AI execution fallback:", apiErr.message);
+      finalDiagnosis = {
+        id: `diag_${Date.now()}`,
         patientName: name,
         specialty,
         symptoms: [
@@ -364,82 +428,65 @@ app.post("/api/diagnose", async (req, res) => {
         ],
         createdAt: new Date().toISOString(),
         isSimulated: true
-      });
+      };
     }
-
-    const systemInstruction = `أنت خبير براندنج تسويقي طبي محترف تعمل لدى وكالة "دومايا" (Domya Marketing Agency).
-مهمتك هي تشخيص الحضور الرقمي للطبيب (المشار إليه بالمريض) وكتابة "روشتة براندنج علاجية" (Branding Prescription) تفصيلية وعملية باللغة العربية بلهجة تجمع بين الاحترافية العلمية والروح الودية المصرية الجاذبة.
-يجب أن تركز خطتك على كيف يمكن للطبيب استخدام قوة الميديا بروداكشن الطبي وكتابة المحتوى لتبسيط المفاهيم وكسب ثقة المرضى.
-أرجع البيانات بالتنسيق والمواصفات المحددة في الـ responseSchema حصراً باللغة العربية.`;
-
-    const prompt = `الاسم: دكتور ${name}
-التخصص: ${specialty}
-تفاصيل العيادة والموقع: ${clinicDetails || 'غير محدد'}
-المشكلة الأساسية التي يعاني منها: ${struggle}
-الجمهور المستهدف: ${targetAudience || 'المرضى الباحثين عن الطمأنينة والأمان'}
-
-قم بتوليد تشخيص دقيق للحالة (Symptoms - أعراض الحضور الرقمي الضعيف) وروشتة علاجية (Prescription Rx - خطوات علاجية برقم Rx)، وخطة محتوى ذكية (Content Plan مع فكرة محورية و 3 موضوعات مخصصة تهم تخصصهم وعامة الناس)، وخطوات عمل فورية (Action Steps).`;
-
-    const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            symptoms: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: "3-4 أعراض واضحة لضعف الحضور الرقمي بناءً على مشكلتهم"
-            },
-            prescriptionRx: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: "4 خطوات علاجية تبدأ بـ Rx 01, Rx 02, Rx 03, Rx 04"
-            },
-            contentPlan: {
-              type: Type.OBJECT,
-              properties: {
-                theme: { type: Type.STRING, description: "الفكرة العامة أو العنوان المحوري لخطة المحتوى" },
-                topics: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING },
-                  description: "3 موضوعات فيديوهات Reels قصيرة تفصيلية مكتوبة بصيغة جذابة ومثيرة للاهتمام"
-                }
-              },
-              required: ["theme", "topics"]
-            },
-            actionSteps: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: "3 خطوات عملية فورية يبدأ الطبيب بتنفيذها فوراً"
-            }
-          },
-          required: ["symptoms", "prescriptionRx", "contentPlan", "actionSteps"]
-        }
-      }
-    });
-
-    const responseText = response.text;
-    if (!responseText) {
-      throw new Error("Empty response from Gemini API");
-    }
-
-    const diagnosisData = JSON.parse(responseText.trim());
-    const finalDiagnosis = {
-      id: `diag_${Date.now()}`,
-      patientName: name,
-      specialty,
-      ...diagnosisData,
-      createdAt: new Date().toISOString()
-    };
 
     // Save diagnosis history
     const diagnoses = loadDiagnoses();
     diagnoses.push(finalDiagnosis);
     saveDiagnoses(diagnoses);
+
+    // --- EMAIL AUTOMATION FLOW ---
+    
+    // 1. Send Email to Doctor
+    if (email) {
+      const docSubject = "روشتة حضورك الرقمي جاهزة 🩺";
+      const docBody = `أهلاً دكتور ${name}،
+شكراً لتسجيلك معنا في منصة دوميا للنمو الرقمي للأطباء.
+
+تم إعداد روشتة حضورك الرقمي المخصصة لعيادتك بنجاح:
+
+=== الأعراض المكتشفة في حضورك الحالي ===
+${finalDiagnosis.symptoms.map((s: string) => `• ${s}`).join("\n")}
+
+=== الخدمات المقترحة لنمو عيادتك ===
+${finalDiagnosis.prescriptionRx.map((r: string) => `• ${r}`).join("\n")}
+
+=== خطة العمل المخصصة لعلاج المشكلة ===
+${finalDiagnosis.actionSteps.map((a: string) => `• ${a}`).join("\n")}
+
+🎁 عرض خاص بمناسبة تسجيلك هذا الشهر:
+احصل على خصم فوري 20% على باقة الإنتاج وتصوير الميديا الأولى لعيادتك عند تأكيد حجزك اليوم!
+
+يمكنك حجز استشارتك المجانية أو التحدث معنا مباشرة:
+الهاتف والواتساب: +201090121000
+البريد الإلكتروني: domyaadv@gmail.com
+
+مع خالص التمنيات بالشفاء والنمو الرقمي لعيادتك،
+فريق وكالة دوميا التسويقية`;
+
+      sendRealEmail(email, docSubject, docBody).catch(err => console.error("Email to doctor failed:", err));
+    }
+
+    // 2. Send Email to Agency Admin
+    const ownerEmail = "domyaadv@gmail.com";
+    const ownerSubject = `تسجيل تشخيص جديد من د. ${name} — ${specialty}`;
+    const ownerBody = `🚨 تم استقبال تشخيص حضور رقمي جديد:
+الاسم: د. ${name}
+التخصص: ${specialty}
+البريد الإلكتروني: ${email || "غير محدد"}
+الهاتف: ${phone || "غير محدد"}
+العيادة: ${clinicName || "غير محدد"}
+المدينة: ${city || "غير محدد"}
+التحدي الأساسي: ${struggle}
+
+=== التشخيص المقترح ===
+الأعراض:
+${finalDiagnosis.symptoms.join("\n")}
+الروشتة:
+${finalDiagnosis.prescriptionRx.join("\n")}`;
+
+    sendRealEmail(ownerEmail, ownerSubject, ownerBody).catch(err => console.error("Email to agency failed:", err));
 
     res.json(finalDiagnosis);
   } catch (err: any) {
@@ -640,8 +687,8 @@ app.post("/api/submit", async (req, res) => {
     }
 
     // Send Real Emails using Nodemailer helper
-    const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دومايا للتسويق الطبي`;
-    const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دومايا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دومايا\nagencydomya@gmail.com | +201090121000`;
+    const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دوميا للتسويق الطبي`;
+    const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دوميا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دوميا\nagencydomya@gmail.com | +201090121000`;
 
     const agencySubject = `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`;
     const agencyBody = `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`;
@@ -934,6 +981,52 @@ app.delete("/api/reels/:id", (req, res) => {
     res.json({ success: true, reels });
   } catch (err) {
     res.status(500).json({ error: "فشل حذف الفيديو." });
+  }
+});
+
+// Partners Logo Ticker Endpoints
+const PARTNERS_FILE = path.join(process.cwd(), "partners.json");
+const loadPartners = (): string[] => {
+  if (!fs.existsSync(PARTNERS_FILE)) {
+    return [
+      "/uploads/logo_dummy_1.png",
+      "/uploads/logo_dummy_2.png",
+      "/uploads/logo_dummy_3.png",
+      "/uploads/logo_dummy_4.png",
+      "/uploads/logo_dummy_5.png"
+    ];
+  }
+  try {
+    return JSON.parse(fs.readFileSync(PARTNERS_FILE, "utf8"));
+  } catch (err) {
+    return [];
+  }
+};
+const savePartners = (partners: string[]) => {
+  fs.writeFileSync(PARTNERS_FILE, JSON.stringify(partners, null, 2), "utf8");
+};
+
+app.get("/api/partners", (req, res) => {
+  try {
+    res.json(loadPartners());
+  } catch (err) {
+    res.status(500).json({ error: "فشل تحميل قائمة الشركاء." });
+  }
+});
+
+app.post("/api/partners", (req, res) => {
+  try {
+    const { auth, partners } = req.body;
+    if (auth !== "domya2026") {
+      return res.status(401).json({ error: "غير مصرح." });
+    }
+    if (!Array.isArray(partners)) {
+      return res.status(400).json({ error: "تنسيق البيانات غير صحيح." });
+    }
+    savePartners(partners);
+    res.json({ success: true, partners });
+  } catch (err) {
+    res.status(500).json({ error: "فشل حفظ قائمة الشركاء." });
   }
 });
 

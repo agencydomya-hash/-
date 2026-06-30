@@ -1,7 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
 
 export interface DoctorSubmission {
   id: string;
@@ -24,6 +20,10 @@ export interface DiagnosisInput {
   clinicDetails: string;
   struggle: string;
   targetAudience: string;
+  email?: string;
+  phone?: string;
+  clinicName?: string;
+  city?: string;
 }
 
 export interface DiagnosisOutput {
