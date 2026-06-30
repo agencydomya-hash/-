@@ -318,9 +318,9 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
                 <div className="pt-2 text-left">
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-8 py-3.5 bg-[#FF5100] hover:bg-orange-655 text-white font-bold rounded-xl text-xs transition duration-300 shadow-md shadow-orange-500/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                    className="w-full px-8 py-4 bg-[#FF5100] hover:bg-orange-655 text-white font-bold rounded-xl text-sm transition duration-300 shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <span>أرسل واعرض الروشتة فورا 🩺</span>
+                    <span>ابدأ التشخيص الرقمي الفوري 🩺</span>
                   </button>
                 </div>
               </form>

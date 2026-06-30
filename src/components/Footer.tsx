@@ -57,6 +57,22 @@ export default function Footer() {
                 <Linkedin className="w-4 h-4" />
               </a>
             </div>
+
+            {/* Trust Badges */}
+            <div className="flex flex-wrap gap-2 items-center pt-3 justify-start">
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] text-slate-300 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span>Google Partner</span>
+              </div>
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] text-slate-300 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                <span>Meta Business Partner</span>
+              </div>
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] text-slate-300 font-semibold">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                <span>10+ Years Exp</span>
+              </div>
+            </div>
           </div>
 
           {/* Column 2: Egypt Office Contacts */}

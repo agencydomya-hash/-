@@ -5,7 +5,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Stethoscope, Lock, Menu, X, ArrowLeft, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { Stethoscope, Lock, Menu, X, ArrowLeft, ShieldCheck, Sparkles, AlertCircle, Globe } from 'lucide-react';
 import { DiagnosisOutput } from './types';
 
 // Component Imports
@@ -13,7 +13,10 @@ import Logo from './components/Logo';
 import Hero from './components/Hero';
 import DiagnosisTool from './components/DiagnosisTool';
 import Services from './components/Services';
+import WhyChooseUs from './components/WhyChooseUs';
+import Journey from './components/Journey';
 import ReelsGallery from './components/ReelsGallery';
+import FAQs from './components/FAQs';
 import BookingForm from './components/BookingForm';
 import AdminPortal from './components/AdminPortal';
 import Footer from './components/Footer';
@@ -50,7 +53,10 @@ export default function App() {
   const diagnosisRef = useRef<HTMLDivElement>(null);
   const bookingRef = useRef<HTMLDivElement>(null);
   const servicesRef = useRef<HTMLDivElement>(null);
+  const whyChooseUsRef = useRef<HTMLDivElement>(null);
+  const journeyRef = useRef<HTMLDivElement>(null);
   const reelsRef = useRef<HTMLDivElement>(null);
+  const faqsRef = useRef<HTMLDivElement>(null);
 
   const scrollTo = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
@@ -105,54 +111,86 @@ export default function App() {
             <Logo />
 
             {/* Middle Nav Links */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden xl:flex items-center gap-6">
+              <button 
+                onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowAdmin(false); }} 
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
+              >
+                الرئيسية
+              </button>
               <button 
                 onClick={() => { scrollTo(servicesRef); setShowAdmin(false); }} 
-                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
               >
-                أعراض الكشف والحلول
+                الخدمات
+              </button>
+              <button 
+                onClick={() => { scrollTo(whyChooseUsRef); setShowAdmin(false); }} 
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
+              >
+                لماذا نحن؟
+              </button>
+              <button 
+                onClick={() => { scrollTo(journeyRef); setShowAdmin(false); }} 
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
+              >
+                رحلة النجاح
               </button>
               <button 
                 onClick={() => { scrollTo(reelsRef); setShowAdmin(false); }} 
-                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
               >
-                معرض سينما العيادة
+                معرض الأعمال
+              </button>
+              <button 
+                onClick={() => { scrollTo(faqsRef); setShowAdmin(false); }} 
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
+              >
+                الأسئلة الشائعة
               </button>
               <button 
                 onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
-                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs transition cursor-pointer"
               >
-                حجز الزيارة المجانية
+                تواصل معنا
               </button>
             </nav>
 
             {/* Left side: CTA action buttons */}
             <div className="hidden lg:flex items-center gap-3">
+              {/* Language Switcher Badge */}
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 px-2.5 py-1.5 rounded-xl text-[10px] text-slate-300 select-none">
+                <Globe className="w-3.5 h-3.5 text-orange-400" />
+                <span className="font-bold text-white">AR</span>
+                <span className="text-white/20">|</span>
+                <span className="text-slate-500 hover:text-slate-300 cursor-pointer transition">EN</span>
+              </div>
+
               <button
                 onClick={handleStartDiagnosis}
-                className="px-5 py-2.5 bg-[#FF5100] hover:bg-orange-600 text-white font-bold rounded-xl transition duration-300 text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-orange-500/10 cursor-pointer"
+                className="px-4 py-2.5 bg-[#FF5100] hover:bg-orange-650 text-white font-bold rounded-xl transition duration-300 text-xs flex items-center gap-1.5 shadow-lg shadow-orange-500/10 cursor-pointer"
                 id="header-cta-diagnosis"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-3.5 h-3.5" />
                 <span>افحص حضورك الفوري</span>
               </button>
 
               <button
                 onClick={() => setShowAdmin(!showAdmin)}
-                className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer ${
+                className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs flex items-center gap-1.5 cursor-pointer ${
                   showAdmin 
                     ? 'bg-[#FF5100] text-white border-[#FF5100]' 
                     : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
                 }`}
                 id="header-cta-admin"
               >
-                <Lock className="w-4 h-4 text-[#FF5100]" />
+                <Lock className="w-3.5 h-3.5 text-[#FF5100]" />
                 <span>بوابة المبيعات</span>
               </button>
             </div>
 
             {/* Mobile menu button */}
-            <div className="flex md:hidden items-center gap-2">
+            <div className="flex xl:hidden items-center gap-2">
               <button
                 onClick={() => setShowAdmin(!showAdmin)}
                 className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300"
@@ -179,33 +217,57 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-white/10 bg-[#050B24]/95 backdrop-blur-xl shadow-2xl"
+              className="xl:hidden border-t border-white/10 bg-[#050B24]/95 backdrop-blur-xl shadow-2xl"
               id="mobile-navigation-panel"
             >
               <div className="px-4 py-6 space-y-4 flex flex-col items-stretch">
                 <button
-                  onClick={() => { scrollTo(servicesRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                  onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setMobileMenuOpen(false); }}
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
-                  أعراض الكشف والحلول
+                  الرئيسية
+                </button>
+                <button
+                  onClick={() => { scrollTo(servicesRef); setMobileMenuOpen(false); }}
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                >
+                  الخدمات
+                </button>
+                <button
+                  onClick={() => { scrollTo(whyChooseUsRef); setMobileMenuOpen(false); }}
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                >
+                  لماذا يختارنا الأطباء؟
+                </button>
+                <button
+                  onClick={() => { scrollTo(journeyRef); setMobileMenuOpen(false); }}
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                >
+                  رحلة النجاح
                 </button>
                 <button
                   onClick={() => { scrollTo(reelsRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
-                  معرض سينما العيادة
+                  معرض الأعمال
+                </button>
+                <button
+                  onClick={() => { scrollTo(faqsRef); setMobileMenuOpen(false); }}
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                >
+                  الأسئلة الشائعة
                 </button>
                 <button
                   onClick={() => { scrollTo(bookingRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
+                  className="py-2 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
-                  حجز الزيارة المجانية
+                  تواصل معنا
                 </button>
 
                 <div className="pt-4 flex flex-col gap-3">
                   <button
                     onClick={() => { scrollTo(diagnosisRef); setMobileMenuOpen(false); }}
-                    className="w-full py-3 bg-[#FF5100] hover:bg-orange-650 text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
+                    className="w-full py-3 bg-[#FF5100] hover:bg-orange-655 text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
                   >
                     التشخيص الذكي الفوري
                   </button>
@@ -244,6 +306,16 @@ export default function App() {
           <Services />
         </div>
 
+        {/* Why Choose Us Section */}
+        <div ref={whyChooseUsRef}>
+          <WhyChooseUs />
+        </div>
+
+        {/* Journey Section */}
+        <div ref={journeyRef}>
+          <Journey />
+        </div>
+
         {/* 4. Interactive AI Branding Diagnosis Tool */}
         <div ref={diagnosisRef}>
           <DiagnosisTool 
@@ -255,6 +327,11 @@ export default function App() {
         {/* 5. Doctors cinematic Reels multimedia section */}
         <div ref={reelsRef}>
           <ReelsGallery />
+        </div>
+
+        {/* FAQs Section */}
+        <div ref={faqsRef}>
+          <FAQs />
         </div>
 
         {/* 7. Clinical Reservation / Booking Form */}

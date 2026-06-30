@@ -23,34 +23,47 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Text Content */}
           <div className="lg:col-span-7 space-y-8">
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-medium"
-            >
-              <Sparkles className="w-4 h-4" />
-              <span>شريك النمو الرقمي للأطباء في مصر والوطن العربي 🌟</span>
-            </motion.div>
+            <div className="flex flex-wrap gap-2.5">
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs sm:text-sm font-medium"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>شريك النمو الرقمي للأطباء في مصر والوطن العربي 🌟</span>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.05 }}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs sm:text-sm font-medium"
+              >
+                <Award className="w-4 h-4" />
+                <span>محتوى علمي دقيق وجذاب 100% 🧪</span>
+              </motion.div>
+            </div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-4xl sm:text-5xl lg:text-6xl font-sans font-black tracking-tight leading-tight text-white"
+              className="text-4xl sm:text-5xl lg:text-6xl font-sans font-black tracking-tight leading-tight text-white text-right"
+              dir="rtl"
             >
               حضورك الرقمي يدخل <br />
-              <span className="text-[#FF5100] drop-shadow-sm">العيادة قبلك!</span>
+              <span className="text-[#FF5100] drop-shadow-sm">العيادة قبلك! 🌟</span>
             </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-slate-300 text-base sm:text-lg font-sans leading-relaxed max-w-2xl"
+              className="text-slate-300 text-base sm:text-lg font-sans leading-relaxed max-w-2xl text-right"
+              dir="rtl"
             >
-              المرضى لا يبحثون فقط عن طبيب، بل يبحثون عن مصدر ثقة وأمان. في وكالة 
-              <span className="text-[#FF5100] font-bold"> دومايا</span>، ندمج عالم الطب بالتسويق الإبداعي لنبني لك هويتك الرقمية المتكاملة من داخل عيادتك.
+              شريك النمو الرقمي للأطباء في مصر والوطن العربي. ندمج عالم الطب بالتسويق الإبداعي لنبني لك هويتك الرقمية المتكاملة من داخل عيادتك.
             </motion.p>
 
             <motion.div
@@ -61,7 +74,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
             >
               <button
                 onClick={onStartDiagnosis}
-                className="px-8 py-4 bg-[#FF5100] hover:bg-orange-650 text-white font-bold rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 group text-lg cursor-pointer"
+                className="px-8 py-4 bg-[#FF5100] hover:bg-orange-655 text-white font-bold rounded-xl transition duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/25 group text-lg cursor-pointer"
                 id="btn-ai-diagnosis"
               >
                 <span>ابدأ التشخيص الرقمي الفوري</span>
@@ -81,19 +94,23 @@ export default function Hero({ onStartDiagnosis, onBookConsultation }: HeroProps
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1, delay: 0.5 }}
-              className="grid grid-cols-3 gap-6 pt-8 border-t border-white/10 text-center"
+              className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-8 border-t border-white/10 text-center"
             >
               <div>
-                <div className="text-2xl sm:text-3xl font-bold text-white font-mono">+10</div>
-                <div className="text-xs sm:text-sm text-slate-450 mt-1">سنوات خبرة تسويقية</div>
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">+50</div>
+                <div className="text-[10px] sm:text-xs text-slate-400 mt-1 font-semibold">طبيب وعيادة متميزة</div>
               </div>
-              <div className="border-x border-white/10">
-                <div className="text-2xl sm:text-3xl font-bold text-[#FF5100] font-mono">+50</div>
-                <div className="text-xs sm:text-sm text-slate-450 mt-1">طبيب وعيادة متميزة</div>
+              <div className="border-r sm:border-r-0 sm:border-x border-white/10">
+                <div className="text-xl sm:text-2xl font-bold text-[#FF5100] font-mono">+150%</div>
+                <div className="text-[10px] sm:text-xs text-slate-400 mt-1 font-semibold">متوسط زيادة الحجوزات</div>
               </div>
-              <div>
-                <div className="text-2xl sm:text-3xl font-bold text-white font-mono">100%</div>
-                <div className="text-xs sm:text-sm text-slate-450 mt-1">محتوى علمي دقيق وجذاب</div>
+              <div className="border-t pt-4 sm:border-t-0 sm:pt-0 border-white/10">
+                <div className="text-xl sm:text-2xl font-bold text-white font-mono">+85%</div>
+                <div className="text-[10px] sm:text-xs text-slate-400 mt-1 font-semibold">نمو في المبيعات</div>
+              </div>
+              <div className="border-t pt-4 sm:border-t-0 sm:pt-0 border-r sm:border-r-0 border-white/10">
+                <div className="text-xl sm:text-2xl font-bold text-[#FF5100] font-mono">+10</div>
+                <div className="text-[10px] sm:text-xs text-slate-400 mt-1 font-semibold">سنوات خبرة تسويقية</div>
               </div>
             </motion.div>
           </div>
