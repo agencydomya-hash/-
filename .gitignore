@@ -9,3 +9,5 @@ coverage/
 google_config.json
 submissions.json
 email_logs.json
+
+.vercel

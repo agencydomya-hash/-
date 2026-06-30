@@ -54,6 +54,7 @@ export default function AdminPortal() {
   const [editingReel, setEditingReel] = useState<any | null>(null);
   const [uploadingVideo, setUploadingVideo] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingCarousel, setUploadingCarousel] = useState(false);
   
   const [reelForm, setReelForm] = useState({
     id: '',
@@ -66,7 +67,9 @@ export default function AdminPortal() {
     qualityPillars: ['', '', ''],
     subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو',
     videoUrl: '',
-    coverUrl: ''
+    coverUrl: '',
+    mediaType: 'video' as 'video' | 'images',
+    images: [] as string[]
   });
 
   const fetchPartners = async () => {
@@ -102,12 +105,13 @@ export default function AdminPortal() {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'cover' | 'partner') => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'video' | 'cover' | 'partner' | 'carousel') => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     if (type === 'video') setUploadingVideo(true);
     else if (type === 'cover') setUploadingCover(true);
+    else if (type === 'carousel') setUploadingCarousel(true);
     else setUploadingPartner(true);
 
     try {
@@ -135,6 +139,12 @@ export default function AdminPortal() {
           } else if (type === 'cover') {
             setReelForm(prev => ({ ...prev, coverUrl: data.url }));
             alert('تم رفع صورة الغلاف بنجاح! 🖼️');
+          } else if (type === 'carousel') {
+            setReelForm(prev => ({ 
+              ...prev, 
+              images: [...(prev.images || []), data.url] 
+            }));
+            alert('تم إضافة صورة الكاروسيل بنجاح! 🖼️');
           } else {
             const newLogoObj = { logoUrl: data.url, name: newPartnerName || '' };
             const updatedList = [...partners, newLogoObj];
@@ -154,6 +164,7 @@ export default function AdminPortal() {
     } finally {
       if (type === 'video') setUploadingVideo(false);
       else if (type === 'cover') setUploadingCover(false);
+      else if (type === 'carousel') setUploadingCarousel(false);
       else setUploadingPartner(false);
     }
   };
@@ -221,7 +232,9 @@ export default function AdminPortal() {
       qualityPillars: reelForm.qualityPillars.filter(p => p.trim() !== ''),
       subtitles: parsedSubtitles,
       videoUrl: reelForm.videoUrl || '',
-      coverUrl: reelForm.coverUrl || ''
+      coverUrl: reelForm.coverUrl || '',
+      mediaType: reelForm.mediaType,
+      images: reelForm.images
     };
 
     try {
@@ -888,7 +901,11 @@ export default function AdminPortal() {
                         coverColor: 'from-[#091B65] to-[#FF5100]',
                         length: 15,
                         qualityPillars: ['', '', ''],
-                        subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو'
+                        subtitlesText: '0: أول جملة في الفيديو\n3: ثاني جملة في الفيديو\n6: ثالث جملة في الفيديو',
+                        videoUrl: '',
+                        coverUrl: '',
+                        mediaType: 'video',
+                        images: []
                       });
                     }}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1"
@@ -903,6 +920,35 @@ export default function AdminPortal() {
                     <h4 className="text-sm font-bold text-orange-400 border-b border-white/5 pb-2">
                       {editingReel.isNew ? 'إضافة فيديو جديد للمعرض' : `تعديل فيديو: ${reelForm.title}`}
                     </h4>
+
+                    {/* Content Type Selector */}
+                    <div className="space-y-2 pb-2 border-b border-white/5">
+                      <label className="block text-xs font-bold text-gray-300">نوع المحتوى المرفوع لمعرض الأعمال:</label>
+                      <div className="flex gap-4">
+                        <label className="flex items-center gap-2 text-xs text-white cursor-pointer bg-white/5 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition">
+                          <input
+                            type="radio"
+                            name="mediaType"
+                            value="video"
+                            checked={reelForm.mediaType === 'video'}
+                            onChange={() => setReelForm(prev => ({ ...prev, mediaType: 'video' }))}
+                            className="text-[#FF5100] focus:ring-[#FF5100]"
+                          />
+                          <span>فيديو سينمائي 🎥</span>
+                        </label>
+                        <label className="flex items-center gap-2 text-xs text-white cursor-pointer bg-white/5 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/10 transition">
+                          <input
+                            type="radio"
+                            name="mediaType"
+                            value="images"
+                            checked={reelForm.mediaType === 'images'}
+                            onChange={() => setReelForm(prev => ({ ...prev, mediaType: 'images' }))}
+                            className="text-[#FF5100] focus:ring-[#FF5100]"
+                          />
+                          <span>ألبوم صور كاروسيل 📸</span>
+                        </label>
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -981,114 +1027,167 @@ export default function AdminPortal() {
                       </div>
                     </div>
 
-                    {/* Media File Uploads (Video & Image Cover) */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Video File Uploader */}
-                      <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <label className="block text-xs font-bold text-gray-300">رفع ملف الفيديو الحقيقي (Video File - MP4)</label>
-                        <div className="flex gap-2 items-center">
-                          <input
-                            type="file"
-                            accept="video/mp4,video/x-m4v,video/*"
-                            onChange={(e) => handleFileUpload(e, 'video')}
-                            className="hidden"
-                            id="video-file-upload-input"
-                          />
-                          <label
-                            htmlFor="video-file-upload-input"
-                            className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
-                          >
-                            {uploadingVideo ? 'جاري رفع الفيديو... ⏳' : 'اختر ملف الفيديو 🎥'}
-                          </label>
-                          {reelForm.videoUrl && (
-                            <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
-                              ✓ {reelForm.videoUrl.split('/').pop()}
-                            </span>
-                          )}
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="أو ضع رابط الفيديو مباشرة..."
-                          value={reelForm.videoUrl}
-                          onChange={(e) => setReelForm(prev => ({ ...prev, videoUrl: e.target.value }))}
-                          className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
-                        />
-                      </div>
+                    {reelForm.mediaType === 'video' ? (
+                      <>
+                        {/* Media File Uploads (Video & Image Cover) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {/* Video File Uploader */}
+                          <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <label className="block text-xs font-bold text-gray-300">رفع ملف الفيديو الحقيقي (Video File - MP4)</label>
+                            <div className="flex gap-2 items-center">
+                              <input
+                                type="file"
+                                accept="video/mp4,video/x-m4v,video/*"
+                                onChange={(e) => handleFileUpload(e, 'video')}
+                                className="hidden"
+                                id="video-file-upload-input"
+                              />
+                              <label
+                                htmlFor="video-file-upload-input"
+                                className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
+                              >
+                                {uploadingVideo ? 'جاري رفع الفيديو... ⏳' : 'اختر ملف الفيديو 🎥'}
+                              </label>
+                              {reelForm.videoUrl && (
+                                <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
+                                  ✓ {reelForm.videoUrl.split('/').pop()}
+                                </span>
+                              )}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="أو ضع رابط الفيديو مباشرة..."
+                              value={reelForm.videoUrl}
+                              onChange={(e) => setReelForm(prev => ({ ...prev, videoUrl: e.target.value }))}
+                              className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                            />
+                          </div>
 
-                      {/* Cover Image Uploader */}
-                      <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
-                        <label className="block text-xs font-bold text-gray-300">رفع صورة الغلاف/الخلفية (Cover Image - JPG/PNG)</label>
+                          {/* Cover Image Uploader */}
+                          <div className="space-y-2 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <label className="block text-xs font-bold text-gray-300">رفع صورة الغلاف/الخلفية (Cover Image - JPG/PNG)</label>
+                            <div className="flex gap-2 items-center">
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleFileUpload(e, 'cover')}
+                                className="hidden"
+                                id="cover-file-upload-input"
+                              />
+                              <label
+                                htmlFor="cover-file-upload-input"
+                                className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
+                              >
+                                {uploadingCover ? 'جاري رفع الصورة... ⏳' : 'اختر صورة الغلاف 🖼️'}
+                              </label>
+                              {reelForm.coverUrl && (
+                                <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
+                                  ✓ {reelForm.coverUrl.split('/').pop()}
+                                </span>
+                              )}
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="أو ضع رابط الصورة مباشرة..."
+                              value={reelForm.coverUrl}
+                              onChange={(e) => setReelForm(prev => ({ ...prev, coverUrl: e.target.value }))}
+                              className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Quality Pillars */}
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-gray-300">ميزات الإنتاج وجودة الفيمبروداكشن (3 نقاط)</label>
+                          <div className="space-y-2">
+                            {reelForm.qualityPillars.map((pillar, idx) => (
+                              <input
+                                key={idx}
+                                type="text"
+                                required
+                                placeholder={`ميزة الإنتاج رقم ${idx + 1}`}
+                                value={pillar}
+                                onChange={(e) => {
+                                  const updated = [...reelForm.qualityPillars];
+                                  updated[idx] = e.target.value;
+                                  setReelForm(prev => ({ ...prev, qualityPillars: updated }));
+                                }}
+                                className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Subtitles text block */}
+                        <div className="space-y-2">
+                          <label className="block text-xs font-bold text-gray-300">الكلام المكتوب ومواقيت الظهور (Subtitles Transcription)</label>
+                          <textarea
+                            rows={4}
+                            required
+                            value={reelForm.subtitlesText}
+                            onChange={(e) => setReelForm(prev => ({ ...prev, subtitlesText: e.target.value }))}
+                            placeholder="أدخل الوقت متبوعاً بالثواني والنص، سطر بكل جملة. مثال:&#10;0: طقطقة الرقبة والظهر.. حركة بنعملها كلنا&#10;3: بس هل الحركة دي بتضر فعلاً؟"
+                            className="w-full p-3 rounded-xl border border-white/10 bg-slate-950 text-white text-xs font-mono outline-none focus:ring-1 focus:ring-[#FF5100] resize-none"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      /* Carousel Images Uploader for Showcase album */
+                      <div className="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                        <div className="text-right">
+                          <label className="block text-xs font-bold text-gray-300">صور ألبوم الكاروسيل (Carousel Images - JPG/PNG)</label>
+                          <p className="text-[10px] text-gray-400 mt-1">ارفع صورة واحدة أو أكثر لتكوين ألبوم الصور التفاعلي:</p>
+                        </div>
                         <div className="flex gap-2 items-center">
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => handleFileUpload(e, 'cover')}
+                            onChange={(e) => handleFileUpload(e, 'carousel')}
                             className="hidden"
-                            id="cover-file-upload-input"
+                            id="carousel-file-upload-input"
                           />
                           <label
-                            htmlFor="cover-file-upload-input"
+                            htmlFor="carousel-file-upload-input"
                             className="px-4 py-2 bg-orange-600/20 hover:bg-orange-600/30 border border-orange-500/30 text-orange-400 text-xs font-bold rounded-xl cursor-pointer flex items-center gap-1.5 transition"
                           >
-                            {uploadingCover ? 'جاري رفع الصورة... ⏳' : 'اختر صورة الغلاف 🖼️'}
+                            {uploadingCarousel ? 'جاري الرفع... ⏳' : 'رفع صورة وإضافتها للألبوم 📸'}
                           </label>
-                          {reelForm.coverUrl && (
-                            <span className="text-[10px] text-emerald-400 font-mono truncate max-w-[120px]" dir="ltr">
-                              ✓ {reelForm.coverUrl.split('/').pop()}
-                            </span>
-                          )}
                         </div>
-                        <input
-                          type="text"
-                          placeholder="أو ضع رابط الصورة مباشرة..."
-                          value={reelForm.coverUrl}
-                          onChange={(e) => setReelForm(prev => ({ ...prev, coverUrl: e.target.value }))}
-                          className="w-full mt-2 px-3 py-1.5 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
-                        />
-                      </div>
-                    </div>
 
-                    {/* Quality Pillars */}
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-gray-300">ميزات الإنتاج وجودة الفيمبروداكشن (3 نقاط)</label>
-                      <div className="space-y-2">
-                        {reelForm.qualityPillars.map((pillar, idx) => (
-                          <input
-                            key={idx}
-                            type="text"
-                            required
-                            placeholder={`ميزة الإنتاج رقم ${idx + 1}`}
-                            value={pillar}
-                            onChange={(e) => {
-                              const updated = [...reelForm.qualityPillars];
-                              updated[idx] = e.target.value;
-                              setReelForm(prev => ({ ...prev, qualityPillars: updated }));
-                            }}
-                            className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
-                          />
-                        ))}
+                        {/* List of uploaded photos inside this specific reelForm carousel */}
+                        {reelForm.images && reelForm.images.length > 0 ? (
+                          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 pt-2">
+                            {reelForm.images.map((imgUrl, imgIdx) => (
+                              <div key={imgIdx} className="relative rounded-lg overflow-hidden border border-white/10 aspect-[9/16] bg-slate-950 flex flex-col justify-end shadow-sm">
+                                <img src={imgUrl} className="absolute inset-0 w-full h-full object-contain" alt="" />
+                                <div className="absolute top-1 right-1 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded font-mono">
+                                  #{imgIdx + 1}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const updatedImgs = reelForm.images.filter((_, idx) => idx !== imgIdx);
+                                    setReelForm(prev => ({ ...prev, images: updatedImgs }));
+                                  }}
+                                  className="absolute inset-x-0 bottom-0 py-1 bg-red-650 hover:bg-red-700 text-white text-[8px] font-bold text-center transition cursor-pointer"
+                                >
+                                  حذف الصورة
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[10px] text-gray-400 italic text-center py-4">لم يتم رفع أي صور لهذا الألبوم بعد.</p>
+                        )}
                       </div>
-                    </div>
-
-                    {/* Subtitles text block */}
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-gray-300">الكلام المكتوب ومواقيت الظهور (Subtitles Transcription)</label>
-                      <textarea
-                        rows={4}
-                        required
-                        value={reelForm.subtitlesText}
-                        onChange={(e) => setReelForm(prev => ({ ...prev, subtitlesText: e.target.value }))}
-                        placeholder="أدخل الوقت متبوعاً بالثواني والنص، سطر بكل جملة. مثال:&#10;0: طقطقة الرقبة والظهر.. حركة بنعملها كلنا&#10;3: بس هل الحركة دي بتضر فعلاً؟"
-                        className="w-full p-3 rounded-xl border border-white/10 bg-slate-950 text-white text-xs font-mono outline-none focus:ring-1 focus:ring-[#FF5100] resize-none"
-                      />
-                    </div>
+                    )}
 
                     <div className="flex gap-2 justify-start pt-2">
                       <button
                         type="submit"
                         className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition cursor-pointer"
                       >
-                        حفظ بيانات الفيديو
+                        حفظ البيانات
                       </button>
                       <button
                         type="button"
@@ -1148,7 +1247,9 @@ export default function AdminPortal() {
                                       .map((s: any) => `${s.time}: ${s.text}`)
                                       .join('\n'),
                                     videoUrl: reel.videoUrl || '',
-                                    coverUrl: reel.coverUrl || ''
+                                    coverUrl: reel.coverUrl || '',
+                                    mediaType: reel.mediaType || 'video',
+                                    images: reel.images || []
                                   });
                                 }}
                                 className="flex-1 py-2 bg-orange-600/10 hover:bg-orange-600/20 border border-orange-500/20 text-[#FF5100] text-xs font-bold rounded-xl transition cursor-pointer text-center"

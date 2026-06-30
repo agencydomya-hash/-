@@ -121,5 +121,35 @@
       "/uploads/1782825455494_photo_2026-06-30_15-58-54.jpg",
       "/uploads/1782825463668_10.png"
     ]
+  },
+  {
+    "id": "reel_1782829497626",
+    "specialty": "جراحة العظام والمفاصل 🦴",
+    "doctorName": "د. ",
+    "title": "م",
+    "views": "100K",
+    "coverColor": "from-[#091B65] to-[#FF5100]",
+    "length": 15,
+    "qualityPillars": [
+      " ؤ",
+      "ؤ",
+      "ؤ"
+    ],
+    "subtitles": [
+      {
+        "time": 0,
+        "text": "أول جملؤة في الفيديو"
+      },
+      {
+        "time": 3,
+        "text": "ثاني جملة في الفيديو"
+      },
+      {
+        "time": 6,
+        "text": "ثالث جملة في الفيديو"
+      }
+    ],
+    "videoUrl": "",
+    "coverUrl": "/uploads/1782829482683_cover_1.jpg"
   }
 ]
