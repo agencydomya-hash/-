@@ -87,17 +87,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050B24] font-sans text-slate-100 overflow-x-hidden relative">
+    <div className="min-h-screen bg-gradient-to-tr from-[#050b1a] via-[#091535] to-[#122352] font-sans text-slate-200 overflow-x-hidden relative">
       
       {/* Floating Ambient Brand Orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#FF5100]/8 aurora-blob" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#091B65]/40 aurora-blob-2" />
-        <div className="absolute top-[40%] left-[20%] w-[35vw] h-[35vw] rounded-full bg-[#FF5100]/4 aurora-blob" />
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#FF5100]/6 aurora-blob" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#091B65]/30 aurora-blob-2" />
+        <div className="absolute top-[40%] left-[20%] w-[35vw] h-[35vw] rounded-full bg-[#FF5100]/3 aurora-blob" />
       </div>
 
       {/* Premium Header / Navigation */}
-      <header className="sticky top-0 z-50 bg-[#050B24]/80 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20 relative z-50" id="main-header">
+      <header className="sticky top-0 z-50 bg-[#050b1a]/80 backdrop-blur-xl border-b border-white/5 shadow-lg shadow-black/20 relative z-50" id="main-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             

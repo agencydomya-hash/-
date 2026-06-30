@@ -167,7 +167,7 @@ export default function ReelsGallery() {
   const currentActiveReel = reels[activeReelIndex];
 
   return (
-    <section className="py-24 bg-slate-50 text-slate-800 border-b border-slate-200" id="reels-gallery">
+    <section className="py-24 bg-transparent text-slate-200 border-b border-white/5 relative z-10" id="reels-gallery">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Toast Alert */}
@@ -186,14 +186,14 @@ export default function ReelsGallery() {
 
         {/* Section Header */}
         <div className="text-center mb-16 space-y-3" dir="rtl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 border border-orange-200 text-[#FF5100] rounded-full text-sm font-semibold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF5100]/10 border border-[#FF5100]/25 text-[#FF5100] rounded-full text-sm font-semibold">
             <Video className="w-4 h-4" />
             <span>سينما عيادة دومايا 🎬</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#091B65]">
+          <h2 className="text-3xl sm:text-4xl font-sans font-black text-white">
             معرض الفيديوهات ودراسات النجاح الطبية
           </h2>
-          <p className="text-slate-600 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed">
+          <p className="text-slate-300 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed">
             شاهد نماذج الفيديوهات السينمائية لأطبائنا مباشرة من الصفحة. اضغط على أي فيديو لتشغيله واكتشاف الأرقام ودراسة الحالة بالتفصيل أدناه.
           </p>
         </div>
@@ -212,7 +212,7 @@ export default function ReelsGallery() {
                 className={`group cursor-pointer relative aspect-[9/16] rounded-3xl overflow-hidden bg-slate-950 shadow-xl transition-all duration-300 border-2 ${
                   isSelected 
                     ? 'border-[#FF5100] shadow-orange-500/10' 
-                    : 'border-slate-200/50 hover:border-slate-300'
+                    : 'border-white/10 hover:border-white/20'
                 }`}
               >
                 {/* Video Element */}
@@ -293,7 +293,7 @@ export default function ReelsGallery() {
           })}
         </div>
 
-        {/* Case Study Details Panel (Directly inline below the grid) */}
+        {/* Case Study Details Panel (Directly inline below the grid - Glassmorphic) */}
         <div className="max-w-6xl mx-auto" dir="rtl">
           <AnimatePresence mode="wait">
             <motion.div
@@ -302,56 +302,56 @@ export default function ReelsGallery() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -15 }}
               transition={{ duration: 0.3 }}
-              className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden"
+              className="glass rounded-3xl p-6 sm:p-8 relative overflow-hidden text-white"
             >
               {/* Premium color bar */}
               <div className="absolute top-0 right-0 bottom-0 w-2 bg-[#FF5100]" />
 
-              <div className="md:flex md:items-center md:justify-between gap-6 pb-6 border-b border-slate-100">
+              <div className="md:flex md:items-center md:justify-between gap-6 pb-6 border-b border-white/10">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-[#FF5100] border border-orange-100">
+                  <div className="w-12 h-12 rounded-full bg-orange-500/10 flex items-center justify-center text-[#FF5100] border border-orange-500/25">
                     <User className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-blue-900">{currentActiveReel.doctorName}</h3>
-                    <span className="text-xs font-bold text-slate-400 block mt-0.5">{currentActiveReel.specialty}</span>
+                    <h3 className="text-lg sm:text-xl font-bold text-white">{currentActiveReel.doctorName}</h3>
+                    <span className="text-xs font-bold text-slate-450 block mt-0.5">{currentActiveReel.specialty}</span>
                   </div>
                 </div>
 
-                <div className="mt-4 md:mt-0 bg-emerald-50 border border-emerald-150 py-2.5 px-4 rounded-xl flex items-center gap-2.5">
-                  <TrendingUp className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs sm:text-sm font-bold text-emerald-800">{currentActiveReel.result}</span>
+                <div className="mt-4 md:mt-0 bg-emerald-500/10 border border-emerald-500/20 py-2.5 px-4 rounded-xl flex items-center gap-2.5">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                  <span className="text-xs sm:text-sm font-bold text-emerald-400">{currentActiveReel.result}</span>
                 </div>
               </div>
 
               {/* Case Study Body Info */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                    <Stethoscope className="w-4 h-4 text-[#FF5100]" />
+                  <h4 className="text-xs font-bold text-orange-400 flex items-center gap-1.5">
+                    <Stethoscope className="w-4 h-4" />
                     <span>حالة العيادة والتحدي التسويقي:</span>
                   </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-semibold">
                     {currentActiveReel.challenge}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <h4 className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4" />
                     <span>خطة الإنتاج وجودة المحتوى:</span>
                   </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-semibold">
+                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-semibold">
                     {currentActiveReel.treatment}
                   </p>
                 </div>
               </div>
 
               {/* CTA Panel Row */}
-              <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="mt-8 pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div className="text-right">
                   <h4 className="text-xs font-bold text-slate-400">هل ترغب في نتائج نمو مماثلة لعيادتك؟</h4>
-                  <p className="text-xs font-semibold text-slate-600 mt-1">اضغط على الزر لحجز جلسة التصوير والاستشارة المجانية فوراً.</p>
+                  <p className="text-xs font-semibold text-slate-300 mt-1">اضغط على الزر لحجز جلسة التصوير والاستشارة المجانية فوراً.</p>
                 </div>
                 
                 <button
