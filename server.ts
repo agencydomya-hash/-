@@ -29,8 +29,12 @@ app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Serve custom uploads directory
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+try {
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn("Could not create uploads directory (expected on Vercel):", err);
 }
 app.use("/uploads", express.static(UPLOADS_DIR));
 
@@ -42,7 +46,11 @@ const DIAGNOSES_FILE = path.join(process.cwd(), "diagnoses.json");
 function loadSubmissions() {
   try {
     if (!fs.existsSync(SUBMISSIONS_FILE)) {
-      fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify([], null, 2));
+      try {
+        fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify([], null, 2));
+      } catch (e) {
+        console.warn("Could not write submissions default placeholder:", e);
+      }
       return [];
     }
     const data = fs.readFileSync(SUBMISSIONS_FILE, "utf-8");
@@ -66,7 +74,11 @@ function saveSubmissions(submissions: any[]) {
 function loadDiagnoses() {
   try {
     if (!fs.existsSync(DIAGNOSES_FILE)) {
-      fs.writeFileSync(DIAGNOSES_FILE, JSON.stringify([], null, 2));
+      try {
+        fs.writeFileSync(DIAGNOSES_FILE, JSON.stringify([], null, 2));
+      } catch (e) {
+        console.warn("Could not write diagnoses default placeholder:", e);
+      }
       return [];
     }
     const data = fs.readFileSync(DIAGNOSES_FILE, "utf-8");
@@ -157,7 +169,11 @@ const DEFAULT_REELS = [
 function loadReels() {
   try {
     if (!fs.existsSync(REELS_FILE)) {
-      fs.writeFileSync(REELS_FILE, JSON.stringify(DEFAULT_REELS, null, 2));
+      try {
+        fs.writeFileSync(REELS_FILE, JSON.stringify(DEFAULT_REELS, null, 2));
+      } catch (e) {
+        console.warn("Could not write default reels placeholder:", e);
+      }
       return DEFAULT_REELS;
     }
     const data = fs.readFileSync(REELS_FILE, "utf-8");
@@ -1111,6 +1127,10 @@ async function startServer() {
   });
 }
 
-startServer().catch((err) => {
-  console.error("Failed to start server:", err);
-});
+if (!process.env.VERCEL) {
+  startServer().catch((err) => {
+    console.error("Failed to start server:", err);
+  });
+}
+
+export default app;
