@@ -115,53 +115,53 @@ export default function AdminPortal() {
     else setUploadingPartner(true);
 
     try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const resultString = reader.result as string;
-        const base64Data = resultString.substring(resultString.indexOf(',') + 1);
-        const uniqueFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
+      // Upload directly from browser to Cloudinary (bypasses Vercel body size limit)
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', 'domya_uploads');
+      formData.append('folder', 'domya');
 
-        const response = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            auth: 'domya2026',
-            fileName: uniqueFileName,
-            fileData: base64Data,
-            fileType: file.type
-          })
-        });
+      const isVideo = file.type.startsWith('video');
+      const resourceType = isVideo ? 'video' : 'image';
+      const cloudName = 'wcntnyxa';
 
-        if (response.ok) {
-          const data = await response.json();
-          if (type === 'video') {
-            setReelForm(prev => ({ ...prev, videoUrl: data.url }));
-            alert('تم رفع ملف الفيديو بنجاح! 🎥');
-          } else if (type === 'cover') {
-            setReelForm(prev => ({ ...prev, coverUrl: data.url }));
-            alert('تم رفع صورة الغلاف بنجاح! 🖼️');
-          } else if (type === 'carousel') {
-            setReelForm(prev => ({ 
-              ...prev, 
-              images: [...(prev.images || []), data.url] 
-            }));
-            alert('تم إضافة صورة الكاروسيل بنجاح! 🖼️');
-          } else {
-            const newLogoObj = { logoUrl: data.url, name: newPartnerName || '' };
-            const updatedList = [...partners, newLogoObj];
-            setPartners(updatedList);
-            await savePartnersList(updatedList);
-            setNewPartnerName('');
-            alert('تم إضافة شعار العميل بنجاح! 🤝');
-          }
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`,
+        { method: 'POST', body: formData }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const url = data.secure_url;
+
+        if (type === 'video') {
+          setReelForm(prev => ({ ...prev, videoUrl: url }));
+          alert('تم رفع ملف الفيديو بنجاح! 🎥');
+        } else if (type === 'cover') {
+          setReelForm(prev => ({ ...prev, coverUrl: url }));
+          alert('تم رفع صورة الغلاف بنجاح! 🖼️');
+        } else if (type === 'carousel') {
+          setReelForm(prev => ({
+            ...prev,
+            images: [...(prev.images || []), url]
+          }));
+          alert('تم إضافة صورة الكاروسيل بنجاح! 🖼️');
         } else {
-          alert('فشل رفع الملف على السيرفر.');
+          const newLogoObj = { logoUrl: url, name: newPartnerName || '' };
+          const updatedList = [...partners, newLogoObj];
+          setPartners(updatedList);
+          await savePartnersList(updatedList);
+          setNewPartnerName('');
+          alert('تم إضافة شعار العميل بنجاح! 🤝');
         }
-      };
-      reader.readAsDataURL(file);
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        console.error('Cloudinary error:', errData);
+        alert('فشل رفع الملف على Cloudinary: ' + (errData?.error?.message || 'خطأ غير معروف'));
+      }
     } catch (err) {
       console.error(err);
-      alert('حدث خطأ أثناء معالجة رفع الملف.');
+      alert('حدث خطأ أثناء رفع الملف.');
     } finally {
       if (type === 'video') setUploadingVideo(false);
       else if (type === 'cover') setUploadingCover(false);
@@ -169,6 +169,7 @@ export default function AdminPortal() {
       else setUploadingPartner(false);
     }
   };
+
 
   const fetchReels = async () => {
     setLoadingReels(true);
