@@ -1048,8 +1048,12 @@ const loadPartners = (): string[] => {
     return [];
   }
 };
-const savePartners = (partners: string[]) => {
-  fs.writeFileSync(PARTNERS_FILE, JSON.stringify(partners, null, 2), "utf8");
+const savePartners = (partners: any[]) => {
+  try {
+    fs.writeFileSync(PARTNERS_FILE, JSON.stringify(partners, null, 2), "utf8");
+  } catch (err) {
+    console.warn("Could not save partners list locally (expected on Vercel read-only filesystem):", err);
+  }
 };
 
 app.get("/api/partners", (req, res) => {
