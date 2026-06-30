@@ -87,43 +87,50 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 overflow-x-hidden">
+    <div className="min-h-screen bg-[#050B24] font-sans text-slate-100 overflow-x-hidden relative">
       
+      {/* Floating Ambient Brand Orbs */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[#FF5100]/8 aurora-blob" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[#091B65]/40 aurora-blob-2" />
+        <div className="absolute top-[40%] left-[20%] w-[35vw] h-[35vw] rounded-full bg-[#FF5100]/4 aurora-blob" />
+      </div>
+
       {/* Premium Header / Navigation */}
-      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-sm shadow-slate-100" id="main-header">
+      <header className="sticky top-0 z-50 bg-[#050B24]/80 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20 relative z-50" id="main-header">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             
-            {/* Right side: Brand Logo (appears on right in RTL) */}
+            {/* Right side: Brand Logo */}
             <Logo />
 
             {/* Middle Nav Links */}
             <nav className="hidden md:flex items-center gap-8">
               <button 
                 onClick={() => { scrollTo(servicesRef); setShowAdmin(false); }} 
-                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 أعراض الكشف والحلول
               </button>
               <button 
                 onClick={() => { scrollTo(reelsRef); setShowAdmin(false); }} 
-                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 معرض سينما العيادة
               </button>
               <button 
                 onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
-                className="text-slate-600 hover:text-[#091B65] font-bold text-xs sm:text-sm transition cursor-pointer"
+                className="text-slate-300 hover:text-[#FF5100] font-bold text-xs sm:text-sm transition cursor-pointer"
               >
                 حجز الزيارة المجانية
               </button>
             </nav>
 
-            {/* Left side: CTA action buttons (appears on left in RTL) */}
+            {/* Left side: CTA action buttons */}
             <div className="hidden lg:flex items-center gap-3">
               <button
                 onClick={handleStartDiagnosis}
-                className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition duration-300 text-xs sm:text-sm flex items-center gap-1.5 shadow-md shadow-orange-500/10"
+                className="px-5 py-2.5 bg-[#FF5100] hover:bg-orange-600 text-white font-bold rounded-xl transition duration-300 text-xs sm:text-sm flex items-center gap-1.5 shadow-lg shadow-orange-500/10 cursor-pointer"
                 id="header-cta-diagnosis"
               >
                 <Sparkles className="w-4 h-4" />
@@ -132,10 +139,10 @@ export default function App() {
 
               <button
                 onClick={() => setShowAdmin(!showAdmin)}
-                className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs sm:text-sm flex items-center gap-1.5 ${
+                className={`px-4 py-2.5 rounded-xl border font-bold transition text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer ${
                   showAdmin 
                     ? 'bg-[#FF5100] text-white border-[#FF5100]' 
-                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 hover:text-slate-900'
+                    : 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
                 }`}
                 id="header-cta-admin"
               >
@@ -148,14 +155,14 @@ export default function App() {
             <div className="flex md:hidden items-center gap-2">
               <button
                 onClick={() => setShowAdmin(!showAdmin)}
-                className="p-2 rounded-lg bg-gray-100 text-gray-700"
+                className="p-2 rounded-lg bg-white/5 border border-white/10 text-slate-300"
                 aria-label="Admin Portal"
               >
                 <Lock className="w-4 h-4 text-orange-500" />
               </button>
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2.5 rounded-xl bg-gray-50 border border-gray-100 text-blue-900 hover:bg-gray-100 transition"
+                className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition"
                 aria-label="Toggle Menu"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -172,25 +179,25 @@ export default function App() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t border-slate-200 bg-white shadow-lg"
+              className="md:hidden border-t border-white/10 bg-[#050B24]/95 backdrop-blur-xl shadow-2xl"
               id="mobile-navigation-panel"
             >
               <div className="px-4 py-6 space-y-4 flex flex-col items-stretch">
                 <button
                   onClick={() => { scrollTo(servicesRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
+                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
                   أعراض الكشف والحلول
                 </button>
                 <button
                   onClick={() => { scrollTo(reelsRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
+                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
                   معرض سينما العيادة
                 </button>
                 <button
                   onClick={() => { scrollTo(bookingRef); setMobileMenuOpen(false); }}
-                  className="py-2.5 text-slate-600 hover:text-[#091B65] font-bold text-sm block border-b border-slate-100 text-right cursor-pointer"
+                  className="py-2.5 text-slate-300 hover:text-white font-bold text-sm block border-b border-white/5 text-right cursor-pointer"
                 >
                   حجز الزيارة المجانية
                 </button>
@@ -198,7 +205,7 @@ export default function App() {
                 <div className="pt-4 flex flex-col gap-3">
                   <button
                     onClick={() => { scrollTo(diagnosisRef); setMobileMenuOpen(false); }}
-                    className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
+                    className="w-full py-3 bg-[#FF5100] hover:bg-orange-650 text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
                   >
                     التشخيص الذكي الفوري
                   </button>
