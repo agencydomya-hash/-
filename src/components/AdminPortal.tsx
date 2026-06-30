@@ -1009,7 +1009,6 @@ export default function AdminPortal() {
                         <label className="block text-xs font-bold text-gray-300">تدرج الألوان (Tailwind classes)</label>
                         <input
                           type="text"
-                          required
                           value={reelForm.coverColor}
                           onChange={(e) => setReelForm(prev => ({ ...prev, coverColor: e.target.value }))}
                           placeholder="from-[#091B65] to-[#FF5100]"
@@ -1021,7 +1020,6 @@ export default function AdminPortal() {
                         <label className="block text-xs font-bold text-gray-300">مدة الفيديو (بالثواني)</label>
                         <input
                           type="number"
-                          required
                           value={reelForm.length}
                           onChange={(e) => setReelForm(prev => ({ ...prev, length: Number(e.target.value) }))}
                           className="w-full px-3 py-2 rounded-xl border border-white/10 bg-slate-950 text-white text-xs outline-none focus:ring-1 focus:ring-[#FF5100]"
