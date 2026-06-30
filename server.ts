@@ -845,6 +845,9 @@ app.post("/api/google/sync-pending", async (req, res) => {
 // Google OAuth Authorization Request URL
 app.get("/api/google/auth-url", (req, res) => {
   try {
+    if (!GOOGLE_CLIENT_ID) {
+      throw new Error("GOOGLE_CLIENT_ID environment variable is missing or empty.");
+    }
     const redirectUri = getRedirectUri(req);
     const authUrl = `https://accounts.google.com/o/oauth2/auth?` + 
       `client_id=${GOOGLE_CLIENT_ID}` + 
@@ -854,9 +857,9 @@ app.get("/api/google/auth-url", (req, res) => {
       `&access_type=offline` + 
       `&prompt=consent`;
     res.json({ url: authUrl });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Auth URL generation error:", err);
-    res.status(550).json({ error: "Failed to generate authorization URL" });
+    res.status(500).json({ error: "Failed to generate authorization URL: " + err.message });
   }
 });
 
