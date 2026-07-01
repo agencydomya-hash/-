@@ -62,6 +62,7 @@ export default function App() {
     }
     return null;
   });
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
 
   // Scroll-to-top visibility + reading progress bar
   useEffect(() => {
@@ -111,7 +112,7 @@ export default function App() {
   };
 
   const handleBookConsultation = () => {
-    scrollTo(bookingRef);
+    setIsBookingModalOpen(true);
   };
 
   const handleDiagnosisComplete = (diagnosis: DiagnosisOutput) => {
@@ -129,7 +130,7 @@ export default function App() {
       localStorage.setItem('domya_doctor_diagnosis', JSON.stringify(diagnosis));
     }
     setTimeout(() => {
-      scrollTo(bookingRef);
+      setIsBookingModalOpen(true);
     }, 100);
   };
 
@@ -199,8 +200,8 @@ export default function App() {
                 {t.faqs}
               </button>
               <button 
-                onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
-                className="text-white/95 hover:text-[#FF6B35] font-bold text-xs transition cursor-pointer"
+                onClick={() => { setIsBookingModalOpen(true); setShowAdmin(false); }} 
+                className="text-white/95 hover:text-[#FF6B35] font-bold text-xs transition cursor-pointer nav-link-slide"
               >
                 {t.contact}
               </button>
@@ -337,7 +338,7 @@ export default function App() {
                   {t.faqs}
                 </button>
                 <button
-                  onClick={() => { scrollTo(bookingRef); setMobileMenuOpen(false); }}
+                  onClick={() => { setIsBookingModalOpen(true); setMobileMenuOpen(false); }}
                   className="py-2 text-[#2C3E50] dark:text-slate-200 hover:text-[#FF6B35] font-bold text-sm block border-b border-slate-100 dark:border-slate-800 text-right cursor-pointer"
                 >
                   {t.contact}
@@ -455,6 +456,54 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Global Booking Modal Overlay */}
+      <AnimatePresence>
+        {isBookingModalOpen && (
+          <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+            {/* Dark blur backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsBookingModalOpen(false)}
+              className="absolute inset-0 bg-[#020813]/85 backdrop-blur-sm"
+            />
+            {/* Modal Card container */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-lg bg-white dark:bg-[#061025] rounded-3xl overflow-hidden shadow-2xl z-10 border border-slate-200 dark:border-[#10244d] max-h-[85vh] overflow-y-auto"
+            >
+              {/* Close button */}
+              <button
+                onClick={() => setIsBookingModalOpen(false)}
+                className="absolute top-4 left-4 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-[#FF6B35] hover:text-white transition cursor-pointer text-slate-500 dark:text-slate-400 z-20"
+                aria-label="Close modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              
+              <div className="p-1">
+                <BookingForm
+                  lang={lang}
+                  diagnosisRef={completedDiagnosis}
+                  onSuccess={() => {
+                    setCompletedDiagnosis(null);
+                    // Dismiss modal after success feedback
+                    setTimeout(() => {
+                      setIsBookingModalOpen(false);
+                    }, 2000);
+                  }}
+                  isModal={true}
+                />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+
       {/* Premium Bottom Floating Mobile Navigation Bar */}
       <div className="fixed bottom-4 left-4 right-4 z-40 block xl:hidden">
         <div className="bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-2xl shadow-xl px-4 py-2 flex items-center justify-between pb-safe">
@@ -494,7 +543,7 @@ export default function App() {
           </button>
 
           <button 
-            onClick={() => { scrollTo(bookingRef); setShowAdmin(false); }} 
+            onClick={() => { setIsBookingModalOpen(true); setShowAdmin(false); }} 
             className="flex flex-col items-center gap-1 text-[#2C3E50]/70 hover:text-[#FF6B35] transition interactive-tab cursor-pointer py-1 flex-1"
           >
             <Calendar className="w-5 h-5" />

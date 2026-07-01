@@ -711,8 +711,10 @@ app.post("/api/submit", async (req, res) => {
       ""
     ];
 
+    const syncPromises = [];
+
     // Background task: Google Sheets sync
-    syncToGoogleSheets(rowValues).then(async (synced) => {
+    const sheetsPromise = syncToGoogleSheets(rowValues).then(async (synced) => {
       if (synced) {
         newSubmission.synced = true;
         const updatedSubmissions = await loadSubmissions();
@@ -720,17 +722,18 @@ app.post("/api/submit", async (req, res) => {
         if (subIdx !== -1) {
           updatedSubmissions[subIdx].synced = true;
           await saveSubmissions(updatedSubmissions);
-          console.log(`[Background Sync] Google Sheets sync succeeded for submission ${newSubmission.id}`);
+          console.log(`[Sync] Google Sheets sync succeeded for submission ${newSubmission.id}`);
         }
       }
     }).catch(sheetErr => {
-      console.error("[Background Sync] Google Sheets sync failed:", sheetErr);
+      console.error("[Sync] Google Sheets sync failed:", sheetErr);
     });
+    syncPromises.push(sheetsPromise);
 
     // Background task: Webhook sync
     if (gConfig && gConfig.webhookUrl) {
-      console.log(`[Background Sync] Triggering webhook sync: ${gConfig.webhookUrl}`);
-      fetch(gConfig.webhookUrl, {
+      console.log(`[Sync] Triggering webhook sync: ${gConfig.webhookUrl}`);
+      const webhookPromise = fetch(gConfig.webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -738,10 +741,11 @@ app.post("/api/submit", async (req, res) => {
           lead: newSubmission
         })
       }).then(() => {
-        console.log("[Background Sync] Webhook sync completed successfully.");
+        console.log("[Sync] Webhook sync completed successfully.");
       }).catch(webhookErr => {
-        console.error("[Background Sync] Webhook sync failed:", webhookErr);
+        console.error("[Sync] Webhook sync failed:", webhookErr);
       });
+      syncPromises.push(webhookPromise);
     }
 
     // Send Real Emails using Nodemailer helper in background
@@ -752,17 +756,24 @@ app.post("/api/submit", async (req, res) => {
     const agencySubject = `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`;
     const agencyBody = `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`;
 
-    // Trigger emails in background
+    // Trigger emails in background and accumulate promise
     if (email && email !== "غير محدد") {
-      sendRealEmail(email, doctorSubject, doctorBody).catch(err => 
-        console.error("[Background Email] Doctor email failed:", err)
+      syncPromises.push(
+        sendRealEmail(email, doctorSubject, doctorBody).catch(err => 
+          console.error("[Email] Doctor email failed:", err)
+        )
       );
     }
-    sendRealEmail(targetReceiver, agencySubject, agencyBody).catch(err => 
-      console.error("[Background Email] Agency admin email failed:", err)
+    syncPromises.push(
+      sendRealEmail(targetReceiver, agencySubject, agencyBody).catch(err => 
+        console.error("[Email] Agency admin email failed:", err)
+      )
     );
 
-    // Return instant success response to the doctor's browser
+    // Await all integrations before sending response to ensure Vercel doesn't freeze the container
+    await Promise.allSettled(syncPromises);
+
+    // Return success response
     res.json({
       success: true,
       submission: newSubmission,
