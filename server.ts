@@ -68,6 +68,7 @@ const DIAGNOSES_FILE = path.join(process.cwd(), "diagnoses.json");
 const REELS_FILE = path.join(process.cwd(), "reels.json");
 const GOOGLE_CONFIG_FILE = path.join(process.cwd(), "google_config.json");
 const PARTNERS_FILE = path.join(process.cwd(), "partners.json");
+const TRANSLATIONS_CUSTOM_FILE = path.join(process.cwd(), "translations_custom.json");
 
 // Helper to extract Google Spreadsheet ID if the user pastes the full URL
 function extractSpreadsheetId(input: string): string {
@@ -391,6 +392,50 @@ function getAiClient(): GoogleGenAI {
 // Health Check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
+});
+
+// Custom Translations APIs
+app.get("/api/translations", async (req, res) => {
+  try {
+    const data = await readJsonFile(TRANSLATIONS_CUSTOM_FILE, {});
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to read custom translations." });
+  }
+});
+
+app.post("/api/translations", async (req, res) => {
+  try {
+    const data = req.body;
+    await writeJsonFile(TRANSLATIONS_CUSTOM_FILE, data);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to save custom translations." });
+  }
+});
+
+// AI Translation API
+app.post("/api/translate", async (req, res) => {
+  try {
+    const { text, targetLang } = req.body;
+    if (!text || !targetLang) {
+      return res.status(400).json({ error: "Text and targetLang are required." });
+    }
+
+    const ai = getAiClient();
+    const prompt = `Translate the following text to ${targetLang === 'en' ? 'English' : 'Arabic'}. Keep the tone professional, natural, and medically appropriate. Return ONLY the translated text without any quotes, introductions, explanations, or extra commentary. Text to translate: ${text}`;
+    
+    const response = await ai.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: prompt,
+    });
+
+    const translation = response.text ? response.text.trim() : "";
+    res.json({ translation });
+  } catch (err: any) {
+    console.error("[AI Translate API] Error:", err);
+    res.status(500).json({ error: err.message || "Failed to translate text." });
+  }
 });
 
 // 1. AI Diagnosis API (Uses Gemini 3.5 Flash server-side)

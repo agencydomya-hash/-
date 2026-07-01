@@ -25,17 +25,34 @@ export default function App() {
   
   // Language & Dark Mode States
   const [lang, setLang] = useState<'ar' | 'en'>(() => {
-    return (localStorage.getItem('domya_lang') as 'ar' | 'en') || 'ar';
+    const saved = localStorage.getItem('domya_lang');
+    if (saved === 'ar' || saved === 'en') return saved;
+    const browserLang = navigator.language || (navigator as any).userLanguage || '';
+    return browserLang.toLowerCase().startsWith('en') ? 'en' : 'ar';
   });
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('domya_dark_mode') === 'true';
   });
+  const [translationVersion, setTranslationVersion] = useState(0);
 
   useEffect(() => {
     document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = lang;
     localStorage.setItem('domya_lang', lang);
   }, [lang]);
+
+  useEffect(() => {
+    fetch('/api/translations')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          if (data.ar) Object.assign(translations.ar, data.ar);
+          if (data.en) Object.assign(translations.en, data.en);
+          setTranslationVersion(v => v + 1);
+        }
+      })
+      .catch(err => console.error("Error loading custom translations:", err));
+  }, []);
 
   useEffect(() => {
     if (darkMode) {

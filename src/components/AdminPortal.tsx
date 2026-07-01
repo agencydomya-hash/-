@@ -5,8 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Users, RefreshCw, CheckCircle, FileSpreadsheet, Lock, AlertCircle, Sparkles, CheckSquare, Mail, ClipboardList, Database, Globe } from 'lucide-react';
 import { DoctorSubmission } from '../types';
+import { translations } from '../translations';
 
 export default function AdminPortal() {
   const [password, setPassword] = useState('');
@@ -18,10 +18,10 @@ export default function AdminPortal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<'leads' | 'integrations' | 'content'>(() => {
+  const [activeTab, setActiveTab] = useState<'leads' | 'integrations' | 'content' | 'translations'>(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
-    if (tabParam === 'integrations' || tabParam === 'content') {
+    if (tabParam === 'integrations' || tabParam === 'content' || tabParam === 'translations') {
       return tabParam;
     }
     return 'leads';
@@ -72,6 +72,12 @@ export default function AdminPortal() {
     mediaType: 'video' as 'video' | 'images',
     images: [] as string[]
   });
+
+  // Dynamic custom translations states
+  const [translationsData, setTranslationsData] = useState<any>({ ar: {}, en: {} });
+  const [savingTranslations, setSavingTranslations] = useState(false);
+  const [translationSuccess, setTranslationSuccess] = useState('');
+  const [translatingField, setTranslatingField] = useState<string | null>(null);
 
   const fetchPartners = async () => {
     try {
@@ -299,6 +305,84 @@ export default function AdminPortal() {
       fetchPartners();
     }
   }, [isAuthenticated, activeTab]);
+
+  useEffect(() => {
+    if (isAuthenticated && activeTab === 'translations') {
+      fetchTranslations();
+    }
+  }, [isAuthenticated, activeTab]);
+
+  const fetchTranslations = async () => {
+    try {
+      const response = await fetch('/api/translations');
+      if (response.ok) {
+        const data = await response.json();
+        // Start with a clean copy of default translations
+        const defaultAr = { ...translations.ar };
+        const defaultEn = { ...translations.en };
+        // Merge custom translations on top
+        setTranslationsData({
+          ar: { ...defaultAr, ...(data.ar || {}) },
+          en: { ...defaultEn, ...(data.en || {}) }
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load translations:", err);
+    }
+  };
+
+  const handleAiTranslate = async (key: string, sourceLang: 'ar' | 'en', text: string) => {
+    if (!text.trim()) return;
+    const targetLang = sourceLang === 'ar' ? 'en' : 'ar';
+    const fieldId = `${key}_${targetLang}`;
+    setTranslatingField(fieldId);
+    try {
+      const res = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, targetLang })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.translation) {
+          setTranslationsData((prev: any) => ({
+            ...prev,
+            [targetLang]: {
+              ...prev[targetLang],
+              [key]: data.translation
+            }
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Translation error:", err);
+    } finally {
+      setTranslatingField(null);
+    }
+  };
+
+  const handleSaveTranslations = async () => {
+    setSavingTranslations(true);
+    setError('');
+    setTranslationSuccess('');
+    try {
+      const res = await fetch('/api/translations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(translationsData)
+      });
+      if (res.ok) {
+        setTranslationSuccess('تم حفظ تعديلات نصوص الموقع والترجمات بنجاح! سيتم تحديث الموقع لحظياً.');
+        setTimeout(() => setTranslationSuccess(''), 4000);
+      } else {
+        setError('فشل حفظ التعديلات.');
+      }
+    } catch (err) {
+      setError('حدث خطأ أثناء الاتصال بالسيرفر لحفظ التعديلات.');
+    } finally {
+      setSavingTranslations(false);
+    }
+  };
 
   const handleSaveGoogleConfig = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -558,31 +642,43 @@ export default function AdminPortal() {
             )}
 
             {/* Dashboard Nav bar */}
-            <div className="flex justify-between items-center border-b border-white/10 pb-4">
-              <div className="flex gap-2">
+            <div className="flex justify-between items-center border-b border-white/10 pb-4 w-full flex-wrap gap-4">
+              <div className="flex gap-2 flex-wrap">
                 <button
+                  type="button"
                   onClick={() => setActiveTab('leads')}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                    activeTab === 'leads' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'leads' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'
                   }`}
                 >
                   طلبات الأطباء الحالية ({submissions.length})
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveTab('integrations')}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                    activeTab === 'integrations' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'integrations' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'
                   }`}
                 >
                   ربط جوجل وورك سبيس 🔒
                 </button>
                 <button
+                  type="button"
                   onClick={() => setActiveTab('content')}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold transition ${
-                    activeTab === 'content' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300'
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'content' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'
                   }`}
                 >
                   إدارة فيديوهات المعرض 🎥
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('translations')}
+                  className={`px-4 py-2 rounded-lg text-xs font-bold transition cursor-pointer ${
+                    activeTab === 'translations' ? 'bg-[#FF5100] text-white' : 'bg-white/5 text-gray-300 hover:bg-white/10'
+                  }`}
+                >
+                  تعديل نصوص الصفحة والترجمة 📝
                 </button>
               </div>
 
@@ -1458,6 +1554,160 @@ export default function AdminPortal() {
                       <p className="text-[11px] text-gray-400 italic text-center py-4">لم يتم رفع أي شعارات بعد. سيتم عرض الشعارات التجريبية الافتراضية.</p>
                     )}
                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'translations' && translationsData && (
+              <div className="bg-slate-900 border border-white/5 rounded-3xl p-6 sm:p-8 space-y-6">
+                <div className="border-b border-white/5 pb-4 flex justify-between items-center flex-wrap gap-4">
+                  <div className="text-right">
+                    <h3 className="text-lg font-bold flex items-center gap-2">
+                      <Globe className="w-5 h-5 text-orange-500" />
+                      <span>تعديل نصوص ومحتوى الموقع والترجمة الذكية (Translations Editor)</span>
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-1">
+                      عدّل أي نص أو عنوان رئيسي في الموقع باللغتين العربية والإنجليزية، واستعن بالذكاء الاصطناعي لترجمة النصوص تلقائياً بنقرة واحدة:
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleSaveTranslations}
+                    disabled={savingTranslations}
+                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-orange-500/25"
+                  >
+                    {savingTranslations ? 'جاري الحفظ...' : 'حفظ التعديلات ونشرها فوراً 🚀'}
+                  </button>
+                </div>
+
+                {translationSuccess && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl text-xs font-semibold text-right">
+                    {translationSuccess}
+                  </div>
+                )}
+
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                  {[
+                    { key: 'heroBadge', label: 'شارة الهيرو (Hero Badge)' },
+                    { key: 'heroTitle1', label: 'العنوان الرئيسي السطر الأول' },
+                    { key: 'heroTitle2', label: 'العنوان الرئيسي السطر الثاني (برتقالي)' },
+                    { key: 'heroSubtitle', label: 'العنوان الفرعي للهيرو (Hero Subtitle)', type: 'textarea' },
+                    { key: 'heroCtaConsult', label: 'زر الحجز الرئيسي (CTA Button)' },
+                    { key: 'whyUsTitle', label: 'عنوان قسم "لماذا نحن؟"' },
+                    { key: 'whyUsSubtitle', label: 'وصف قسم "لماذا نحن؟"', type: 'textarea' },
+                    { key: 'journeyTitle', label: 'عنوان قسم "رحلة النجاح"' },
+                    { key: 'journeySubtitle', label: 'وصف قسم "رحلة النجاح"', type: 'textarea' },
+                    { key: 'reelsTitle', label: 'عنوان معرض الفيديوهات' },
+                    { key: 'reelsSubtitle', label: 'وصف معرض الفيديوهات', type: 'textarea' },
+                    { key: 'footerDesc', label: 'وصف الفوتر (Footer Description)', type: 'textarea' },
+                    { key: 'footerTagline', label: 'شعار الفوتر (Footer Tagline)' }
+                  ].map((field) => (
+                    <div key={field.key} className="bg-slate-950 p-4 rounded-2xl border border-white/5 space-y-4 text-right">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs font-bold text-gray-500 font-mono">Key: {field.key}</span>
+                        <span className="text-sm font-bold text-white">{field.label}</span>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Arabic Column */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <button
+                              type="button"
+                              onClick={() => handleAiTranslate(field.key, 'en', translationsData.en?.[field.key] || '')}
+                              disabled={translatingField !== null}
+                              className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 cursor-pointer bg-orange-500/10 px-2.5 py-1 rounded-lg border border-orange-500/15"
+                            >
+                              {translatingField === `${field.key}_ar` ? 'جاري الترجمة...' : 'ترجم إلى العربية بالـ AI 🤖'}
+                            </button>
+                            <label className="text-[11px] font-bold text-orange-400">النسخة العربية (Arabic)</label>
+                          </div>
+                          {field.type === 'textarea' ? (
+                            <textarea
+                              rows={4}
+                              value={translationsData.ar?.[field.key] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTranslationsData((prev: any) => ({
+                                  ...prev,
+                                  ar: { ...prev.ar, [field.key]: val }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 text-right leading-relaxed"
+                              dir="rtl"
+                            />
+                          ) : (
+                            <input
+                              type="text"
+                              value={translationsData.ar?.[field.key] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTranslationsData((prev: any) => ({
+                                  ...prev,
+                                  ar: { ...prev.ar, [field.key]: val }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 text-right"
+                              dir="rtl"
+                            />
+                          )}
+                        </div>
+
+                        {/* English Column */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <button
+                              type="button"
+                              onClick={() => handleAiTranslate(field.key, 'ar', translationsData.ar?.[field.key] || '')}
+                              disabled={translatingField !== null}
+                              className="text-[10px] text-orange-400 hover:text-orange-300 font-bold flex items-center gap-1 cursor-pointer bg-orange-500/10 px-2.5 py-1 rounded-lg border border-orange-500/15"
+                            >
+                              {translatingField === `${field.key}_en` ? 'Translating...' : 'Translate to EN via AI 🤖'}
+                            </button>
+                            <label className="text-[11px] font-bold text-orange-400">النسخة الإنجليزية (English)</label>
+                          </div>
+                          {field.type === 'textarea' ? (
+                            <textarea
+                              rows={4}
+                              value={translationsData.en?.[field.key] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTranslationsData((prev: any) => ({
+                                  ...prev,
+                                  en: { ...prev.en, [field.key]: val }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 text-left leading-relaxed"
+                              dir="ltr"
+                            />
+                          ) : (
+                            <input
+                              type="text"
+                              value={translationsData.en?.[field.key] || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setTranslationsData((prev: any) => ({
+                                  ...prev,
+                                  en: { ...prev.en, [field.key]: val }
+                                }));
+                              }}
+                              className="w-full bg-slate-900 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 text-left"
+                              dir="ltr"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-4 border-t border-white/5 flex justify-end">
+                  <button
+                    onClick={handleSaveTranslations}
+                    disabled={savingTranslations}
+                    className="px-8 py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-sm transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-orange-500/25"
+                  >
+                    {savingTranslations ? 'جاري الحفظ...' : 'حفظ التعديلات ونشرها فوراً 🚀'}
+                  </button>
                 </div>
               </div>
             )}
