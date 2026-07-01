@@ -27,8 +27,7 @@ export default function App() {
   const [lang, setLang] = useState<'ar' | 'en'>(() => {
     const saved = localStorage.getItem('domya_lang');
     if (saved === 'ar' || saved === 'en') return saved;
-    const browserLang = navigator.language || (navigator as any).userLanguage || '';
-    return browserLang.toLowerCase().startsWith('en') ? 'en' : 'ar';
+    return 'ar';
   });
   const [darkMode, setDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('domya_dark_mode') === 'true';
