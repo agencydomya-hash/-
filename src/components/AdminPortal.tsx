@@ -14,6 +14,7 @@ export default function AdminPortal() {
     return sessionStorage.getItem('domya_admin_auth') === 'true';
   });
   const [submissions, setSubmissions] = useState<DoctorSubmission[]>([]);
+  const [resendingId, setResendingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
@@ -351,6 +352,29 @@ export default function AdminPortal() {
     }
   };
 
+  const handleResendEmail = async (id: string) => {
+    setResendingId(id);
+    setError('');
+    try {
+      const response = await fetch('/api/submissions/resend-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ auth: 'domya2026', id })
+      });
+      if (response.ok) {
+        setSubmissions(prev => prev.map(s => s.id === id ? { ...s, emailStatus: 'success' } : s));
+        showSuccess('تم إعادة إرسال الإيميل للطبيب بنجاح! ✉️');
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        setError(errData.error || 'فشل إرسال الإيميل يدوياً.');
+      }
+    } catch (err) {
+      setError('خطأ في الاتصال بالخادم لإعادة إرسال الإيميل.');
+    } finally {
+      setResendingId(null);
+    }
+  };
+
   const fetchSubmissions = async () => {
     setLoading(true);
     try {
@@ -607,6 +631,7 @@ export default function AdminPortal() {
                           <th className="p-4">بيانات الاتصال</th>
                           <th className="p-4">الهدف التسويقي الأساسي</th>
                           <th className="p-4">الحالة</th>
+                          <th className="p-4 text-center">الإيميل التلقائي</th>
                           <th className="p-4">الملاحظات الطبية والتسويقية</th>
                         </tr>
                       </thead>
@@ -675,6 +700,43 @@ export default function AdminPortal() {
                                 >
                                   مؤرشف
                                 </button>
+                              </div>
+                            </td>
+
+                            {/* Email Status & Resend */}
+                            <td className="p-4 text-center">
+                              <div className="flex flex-col items-center gap-1">
+                                {sub.emailStatus === 'success' && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-[10px]">
+                                    <CheckCircle className="w-3 h-3" /> تم الإرسال
+                                  </span>
+                                )}
+                                {sub.emailStatus === 'failed' && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 font-bold text-[10px]">
+                                    <AlertCircle className="w-3 h-3" /> فشل الإرسال
+                                  </span>
+                                )}
+                                {sub.emailStatus === 'pending' && sub.email && sub.email !== 'غير محدد' && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold text-[10px] animate-pulse">
+                                    <RefreshCw className="w-3 h-3 animate-spin" /> جاري الإرسال
+                                  </span>
+                                )}
+                                {(sub.emailStatus === 'not_provided' || !sub.email || sub.email === 'غير محدد') && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-500/10 text-gray-400 font-bold text-[10px]">
+                                    لا يوجد بريد
+                                  </span>
+                                )}
+                                
+                                {sub.email && sub.email !== 'غير محدد' && (
+                                  <button
+                                    onClick={() => handleResendEmail(sub.id)}
+                                    disabled={resendingId === sub.id}
+                                    className="mt-1.5 px-2 py-1 bg-white/5 hover:bg-orange-500/20 hover:text-orange-400 border border-white/10 rounded font-bold text-[9px] text-gray-300 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                                  >
+                                    <Mail className="w-3 h-3" />
+                                    {resendingId === sub.id ? 'جاري...' : 'إعادة إرسال'}
+                                  </button>
+                                )}
                               </div>
                             </td>
 

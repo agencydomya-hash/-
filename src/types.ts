@@ -12,6 +12,7 @@ export interface DoctorSubmission {
   createdAt: string;
   notes?: string;
   diagnosisId?: string;
+  emailStatus?: string;
 }
 
 export interface DiagnosisInput {

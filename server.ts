@@ -166,6 +166,21 @@ async function saveSubmissions(submissions: any[]) {
   await writeJsonFile(SUBMISSIONS_FILE, submissions);
 }
 
+// Helper to update email status of a submission
+async function updateEmailStatusInSubmissions(id: string, status: "success" | "failed" | "not_provided" | "pending") {
+  try {
+    const submissions = await loadSubmissions();
+    const idx = submissions.findIndex((s: any) => s.id === id);
+    if (idx !== -1) {
+      submissions[idx].emailStatus = status;
+      await saveSubmissions(submissions);
+      console.log(`[DB] Updated emailStatus for ${id} to ${status}`);
+    }
+  } catch (err) {
+    console.error(`[DB] Failed to update emailStatus for ${id}:`, err);
+  }
+}
+
 // Helper to load diagnoses
 async function loadDiagnoses() {
   return await readJsonFile(DIAGNOSES_FILE, []);
@@ -676,6 +691,7 @@ app.post("/api/submit", async (req, res) => {
     }
 
     const submissions = await loadSubmissions();
+    const hasEmail = email && email !== "غير محدد";
     const newSubmission = {
       id: `sub_${Date.now()}`,
       name,
@@ -689,7 +705,8 @@ app.post("/api/submit", async (req, res) => {
       createdAt: new Date().toISOString(),
       diagnosisId: diagnosisId || null,
       notes: "",
-      synced: false
+      synced: false,
+      emailStatus: hasEmail ? "pending" : "not_provided"
     };
 
     submissions.push(newSubmission);
@@ -758,11 +775,15 @@ app.post("/api/submit", async (req, res) => {
 
     // Trigger emails in background and accumulate promise
     if (email && email !== "غير محدد") {
-      syncPromises.push(
-        sendRealEmail(email, doctorSubject, doctorBody).catch(err => 
-          console.error("[Email] Doctor email failed:", err)
-        )
-      );
+      const emailPromise = sendRealEmail(email, doctorSubject, doctorBody)
+        .then(async () => {
+          await updateEmailStatusInSubmissions(newSubmission.id, "success");
+        })
+        .catch(async (err) => {
+          console.error("[Email] Doctor email failed:", err);
+          await updateEmailStatusInSubmissions(newSubmission.id, "failed");
+        });
+      syncPromises.push(emailPromise);
     }
     syncPromises.push(
       sendRealEmail(targetReceiver, agencySubject, agencyBody).catch(err => 
@@ -786,6 +807,55 @@ app.post("/api/submit", async (req, res) => {
   } catch (err) {
     console.error("Submission error:", err);
     res.status(500).json({ error: "فشل إرسال طلب الحجز. برجاء المحاولة لاحقاً." });
+  }
+});
+
+// Resend confirmation email manually
+app.post("/api/submissions/resend-email", async (req, res) => {
+  try {
+    const { auth, id } = req.body;
+    if (auth !== "domya2026") {
+      return res.status(401).json({ error: "غير مصرح بالدخول." });
+    }
+    if (!id) {
+      return res.status(400).json({ error: "برجاء توفير معرف الطلب." });
+    }
+
+    const submissions = await loadSubmissions();
+    const sub = submissions.find((s: any) => s.id === id);
+    if (!sub) {
+      return res.status(404).json({ error: "الطلب غير موجود." });
+    }
+
+    if (!sub.email || sub.email === "غير محدد") {
+      return res.status(400).json({ error: "الطبيب لم يوفر بريداً إلكترونياً." });
+    }
+
+    const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دوميا للتسويق الطبي`;
+    const doctorBody = `أهلاً دكتور ${sub.name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${sub.specialty}\nالعيادة: ${sub.clinicName || 'غير محدد'}\nالهدف المختار: ${sub.goal}\n\nسيقوم مستشار تسويق من فريق دوميا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دوميا\nagencydomya@gmail.com | +201090121000`;
+
+    console.log(`[Manual Resend] Sending email manually to ${sub.email}...`);
+    
+    let sent = false;
+    try {
+      await sendRealEmail(sub.email, doctorSubject, doctorBody);
+      sent = true;
+    } catch (mailErr) {
+      console.error("[Manual Resend] Failed:", mailErr);
+    }
+
+    if (sent) {
+      sub.emailStatus = "success";
+      await saveSubmissions(submissions);
+      return res.json({ success: true, submission: sub });
+    } else {
+      sub.emailStatus = "failed";
+      await saveSubmissions(submissions);
+      return res.status(500).json({ error: "فشل إرسال البريد الإلكتروني. يرجى مراجعة إعدادات SMTP." });
+    }
+  } catch (err) {
+    console.error("Resend error:", err);
+    res.status(500).json({ error: "حدث خطأ أثناء محاولة إرسال البريد." });
   }
 });
 
