@@ -23,6 +23,13 @@
   
   --color-domya-navy: #003D7A;
   --color-domya-orange: #FF6B35;
+
+  /* Overrides for standard slates to enforce a premium medical midnight blue dark theme */
+  --color-slate-950: #020813;
+  --color-slate-900: #061025;
+  --color-slate-850: #0a1835;
+  --color-slate-800: #10244d;
+  --color-slate-700: #1d356b;
 }
 
 :root {
