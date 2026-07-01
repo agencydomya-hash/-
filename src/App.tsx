@@ -391,6 +391,20 @@ export default function App() {
           <Services lang={lang} />
         </div>
 
+        {/* 5. Doctors cinematic Reels multimedia section */}
+        <div ref={reelsRef}>
+          <ReelsGallery lang={lang} />
+        </div>
+
+        {/* 7. Clinical Reservation / Booking Form */}
+        <div ref={bookingRef}>
+          <BookingForm 
+            lang={lang}
+            diagnosisRef={completedDiagnosis} 
+            onSuccess={() => setCompletedDiagnosis(null)} 
+          />
+        </div>
+
         {/* Why Choose Us Section */}
         <div ref={whyChooseUsRef}>
           <WhyChooseUs lang={lang} />
@@ -410,24 +424,9 @@ export default function App() {
           />
         </div>
 
-        {/* 5. Doctors cinematic Reels multimedia section */}
-        <div ref={reelsRef}>
-          <ReelsGallery lang={lang} />
-        </div>
-
-
         {/* FAQs Section */}
         <div ref={faqsRef}>
           <FAQs lang={lang} />
-        </div>
-
-        {/* 7. Clinical Reservation / Booking Form */}
-        <div ref={bookingRef}>
-          <BookingForm 
-            lang={lang}
-            diagnosisRef={completedDiagnosis} 
-            onSuccess={() => setCompletedDiagnosis(null)} 
-          />
         </div>
 
         {/* Partners / Success Clients Auto-Moving Logos Ticker */}
