@@ -8,7 +8,6 @@ import { translations } from './translations';
 import Logo from './components/Logo';
 import Hero from './components/Hero';
 import Statistics from './components/Statistics';
-import DiagnosisTool from './components/DiagnosisTool';
 import Services from './components/Services';
 import WhyChooseUs from './components/WhyChooseUs';
 import Journey from './components/Journey';
@@ -230,12 +229,12 @@ export default function App() {
               </button>
 
               <button
-                onClick={handleStartDiagnosis}
+                onClick={handleBookConsultation}
                 className="px-4 py-2.5 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition duration-300 text-xs flex items-center gap-1.5 shadow-lg shadow-orange-500/15 cursor-pointer"
-                id="header-cta-diagnosis"
+                id="header-cta-booking"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{t.aiCheckup}</span>
+                <Calendar className="w-3.5 h-3.5" />
+                <span>{t.contact}</span>
               </button>
 
               <button
@@ -346,10 +345,10 @@ export default function App() {
 
                 <div className="pt-4 flex flex-col gap-3">
                   <button
-                    onClick={() => { scrollTo(diagnosisRef); setMobileMenuOpen(false); }}
+                    onClick={() => { setIsBookingModalOpen(true); setMobileMenuOpen(false); }}
                     className="w-full py-3 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl text-center text-sm cursor-pointer shadow-md shadow-orange-500/10"
                   >
-                    {t.aiCheckup}
+                    {t.contact}
                   </button>
                 </div>
               </div>
@@ -413,15 +412,6 @@ export default function App() {
         {/* Journey Section */}
         <div ref={journeyRef}>
           <Journey lang={lang} />
-        </div>
-
-        {/* 4. Interactive AI Branding Diagnosis Tool */}
-        <div ref={diagnosisRef}>
-          <DiagnosisTool 
-            lang={lang}
-            onDiagnosisComplete={handleDiagnosisComplete} 
-            onSelectBookingWithDiagnosis={handleSelectBookingWithDiagnosis} 
-          />
         </div>
 
         {/* FAQs Section */}
@@ -522,14 +512,14 @@ export default function App() {
             <span className="text-[9px] font-bold">الخدمات</span>
           </button>
 
-          {/* Centered Glowing AI Diagnosis Button */}
+          {/* Centered Glowing Booking Button */}
           <div className="flex-1 flex justify-center -mt-6">
             <button 
-              onClick={() => { scrollTo(diagnosisRef); setShowAdmin(false); }} 
+              onClick={() => { setIsBookingModalOpen(true); setShowAdmin(false); }} 
               className="w-14 h-14 rounded-full bg-gradient-to-r from-orange-500 to-[#FF6B35] text-white flex items-center justify-center shadow-lg shadow-orange-500/35 border-4 border-white animate-pulse-subtle transition interactive-tab cursor-pointer"
-              aria-label="AI Checkup"
+              aria-label="Book Consultation"
             >
-              <Stethoscope className="w-6 h-6" />
+              <Calendar className="w-6 h-6" />
             </button>
           </div>
 
@@ -542,11 +532,11 @@ export default function App() {
           </button>
 
           <button 
-            onClick={() => { setIsBookingModalOpen(true); setShowAdmin(false); }} 
+            onClick={() => { scrollTo(faqsRef); setShowAdmin(false); }} 
             className="flex flex-col items-center gap-1 text-[#2C3E50]/70 hover:text-[#FF6B35] transition interactive-tab cursor-pointer py-1 flex-1"
           >
-            <Calendar className="w-5 h-5" />
-            <span className="text-[9px] font-bold">الحجز</span>
+            <AlertCircle className="w-5 h-5" />
+            <span className="text-[9px] font-bold">الأسئلة</span>
           </button>
         </div>
       </div>
