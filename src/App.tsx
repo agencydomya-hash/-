@@ -17,7 +17,6 @@ import FAQs from './components/FAQs';
 import BookingForm from './components/BookingForm';
 import AdminPortal from './components/AdminPortal';
 import PartnersTicker from './components/PartnersTicker';
-import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 
 export default function App() {
@@ -415,8 +414,6 @@ export default function App() {
           <ReelsGallery lang={lang} />
         </div>
 
-        {/* Testimonials / Success Stories */}
-        <Testimonials lang={lang} />
 
         {/* FAQs Section */}
         <div ref={faqsRef}>
