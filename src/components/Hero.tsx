@@ -79,12 +79,12 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
               className={`flex flex-col sm:flex-row gap-4 pt-4 ${isEn ? 'sm:flex-row' : 'sm:flex-row-reverse'} justify-start`}
             >
               <button
-                onClick={onStartDiagnosis}
+                onClick={onBookConsultation}
                 className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 group text-lg cursor-pointer hover:-translate-y-0.5 active:translate-y-0 shine-effect"
-                id="btn-ai-diagnosis"
+                id="btn-book-consultation-hero-primary"
                 style={{ borderRadius: '8px' }}
               >
-                <span>{t.heroCtaCheckup}</span>
+                <span>{t.heroCtaConsult}</span>
                 {isEn ? (
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 ) : (
@@ -93,12 +93,15 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
               </button>
 
               <button
-                onClick={onBookConsultation}
-                className="px-8 py-4 bg-white dark:bg-slate-900 hover:bg-[#F0F4F8] dark:hover:bg-slate-800 text-[#FF6B35] font-bold rounded-xl border-2 border-[#FF6B35] transition duration-300 flex items-center justify-center gap-2 text-lg cursor-pointer"
-                id="btn-book-consultation-hero"
+                onClick={() => {
+                  const el = document.getElementById('reels-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="px-8 py-4 bg-white dark:bg-slate-900 hover:bg-[#F0F4F8] dark:hover:bg-slate-800 text-[#FF6B35] dark:text-orange-400 font-bold rounded-xl border-2 border-[#FF6B35] transition duration-300 flex items-center justify-center gap-2 text-lg cursor-pointer"
+                id="btn-reels-scroll-hero"
                 style={{ borderRadius: '8px' }}
               >
-                <span>{t.heroCtaConsult}</span>
+                <span>{isEn ? "Watch Our Work 🎥" : "معرض أعمالنا 🎥"}</span>
               </button>
             </motion.div>
 
@@ -106,25 +109,28 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
             <div className="flex lg:hidden flex-wrap items-center gap-2.5 pt-2 text-xs font-semibold text-[#003D7A] dark:text-slate-300 justify-start">
               <span>{isEn ? "Quick Skip:" : "انتقال سريع إلى:"}</span>
               <button 
-                onClick={onStartDiagnosis}
+                onClick={onBookConsultation}
                 className="px-2.5 py-1 bg-white/60 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[#FF6B35] dark:text-orange-400 font-bold transition cursor-pointer text-[11px]"
               >
-                {isEn ? "AI Diagnosis 🩺" : "أداة التشخيص 🩺"}
+                {isEn ? "Book Session 📲" : "حجز جلسة 📲"}
               </button>
               <button 
                 onClick={() => {
                   const el = document.getElementById('reels-section');
-                  if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }}
                 className="px-2.5 py-1 bg-white/60 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[#003D7A] dark:text-white transition cursor-pointer text-[11px]"
               >
                 {isEn ? "Videos 🎥" : "فيديوهات الأطباء 🎥"}
               </button>
               <button 
-                onClick={onBookConsultation}
+                onClick={() => {
+                  const el = document.getElementById('faqs-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
                 className="px-2.5 py-1 bg-white/60 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-[#003D7A] dark:text-white transition cursor-pointer text-[11px]"
               >
-                {isEn ? "Book Consultation 📲" : "حجز جلسة 📲"}
+                {isEn ? "FAQs ❓" : "الأسئلة ❓"}
               </button>
             </div>
 
