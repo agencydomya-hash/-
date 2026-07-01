@@ -69,6 +69,19 @@ const REELS_FILE = path.join(process.cwd(), "reels.json");
 const GOOGLE_CONFIG_FILE = path.join(process.cwd(), "google_config.json");
 const PARTNERS_FILE = path.join(process.cwd(), "partners.json");
 
+// Helper to extract Google Spreadsheet ID if the user pastes the full URL
+function extractSpreadsheetId(input: string): string {
+  if (!input) return "";
+  const trimmed = input.trim();
+  if (trimmed.includes("docs.google.com/spreadsheets")) {
+    const matches = trimmed.match(/\/d\/([a-zA-Z0-9-_]+)/);
+    if (matches && matches[1]) {
+      return matches[1];
+    }
+  }
+  return trimmed;
+}
+
 // Helper: read JSON data — Redis (Vercel) → Memory Cache → Disk (local dev)
 async function readJsonFile(filePath: string, defaultValue: any = []) {
   const fileName = path.basename(filePath);
@@ -81,8 +94,16 @@ async function readJsonFile(filePath: string, defaultValue: any = []) {
   // 2. On Vercel: read from Redis
   if (IS_VERCEL && redis) {
     try {
-      const data = await redis.get(`domya:${fileName}`);
+      let data = await redis.get(`domya:${fileName}`);
       if (data !== null && data !== undefined) {
+        // Defensive string-to-object parsing if stored as stringified JSON in Upstash
+        if (typeof data === 'string') {
+          try {
+            data = JSON.parse(data);
+          } catch (e) {
+            // Keep original string if not valid JSON
+          }
+        }
         // Cache it in memory for subsequent reads in same container
         MEMORY_CACHE[fileName] = data;
         return data;
@@ -676,70 +697,72 @@ app.post("/api/submit", async (req, res) => {
 
     const gConfig = await loadGoogleConfig();
 
-     // Try to sync with Google Sheets in real-time
-    try {
-      const rowValues = [
-        newSubmission.id,
-        `د. ${newSubmission.name}`,
-        newSubmission.specialty,
-        newSubmission.clinicName,
-        newSubmission.phone,
-        newSubmission.email,
-        newSubmission.socialLink,
-        newSubmission.goal,
-        "جديد",
-        new Date(newSubmission.createdAt).toLocaleString("ar-EG"),
-        ""
-      ];
+    const rowValues = [
+      newSubmission.id,
+      `د. ${newSubmission.name}`,
+      newSubmission.specialty,
+      newSubmission.clinicName,
+      newSubmission.phone,
+      newSubmission.email,
+      newSubmission.socialLink,
+      newSubmission.goal,
+      "جديد",
+      new Date(newSubmission.createdAt).toLocaleString("ar-EG"),
+      ""
+    ];
 
-      const synced = await syncToGoogleSheets(rowValues);
+    // Background task: Google Sheets sync
+    syncToGoogleSheets(rowValues).then(async (synced) => {
       if (synced) {
         newSubmission.synced = true;
-        // Save with updated sync status
         const updatedSubmissions = await loadSubmissions();
         const subIdx = updatedSubmissions.findIndex((s: any) => s.id === newSubmission.id);
         if (subIdx !== -1) {
           updatedSubmissions[subIdx].synced = true;
           await saveSubmissions(updatedSubmissions);
+          console.log(`[Background Sync] Google Sheets sync succeeded for submission ${newSubmission.id}`);
         }
       }
-    } catch (sheetErr) {
-      console.error("Google Sheets background sync error:", sheetErr);
-    }
+    }).catch(sheetErr => {
+      console.error("[Background Sync] Google Sheets sync failed:", sheetErr);
+    });
 
-    // Try to sync with Google Forms / Apps Script Webhook in real-time
-    const targetReceiver = gConfig.receiverEmail || "agencydomya@gmail.com";
+    // Background task: Webhook sync
     if (gConfig && gConfig.webhookUrl) {
-      try {
-        console.log(`Triggering webhook sync: ${gConfig.webhookUrl}`);
-        await fetch(gConfig.webhookUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            event: "new_lead",
-            lead: newSubmission
-          })
-        });
-        console.log("Webhook sync completed successfully.");
-      } catch (webhookErr) {
-        console.error("Webhook synchronization error:", webhookErr);
-      }
+      console.log(`[Background Sync] Triggering webhook sync: ${gConfig.webhookUrl}`);
+      fetch(gConfig.webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event: "new_lead",
+          lead: newSubmission
+        })
+      }).then(() => {
+        console.log("[Background Sync] Webhook sync completed successfully.");
+      }).catch(webhookErr => {
+        console.error("[Background Sync] Webhook sync failed:", webhookErr);
+      });
     }
 
-    // Send Real Emails using Nodemailer helper
+    // Send Real Emails using Nodemailer helper in background
+    const targetReceiver = gConfig.receiverEmail || "agencydomya@gmail.com";
     const doctorSubject = `✅ تأكيد استلام حجزك — وكالة دوميا للتسويق الطبي`;
     const doctorBody = `أهلاً دكتور ${name}،\n\nتم استلام طلب حجز الاستشارة التسويقية الخاص بك بنجاح.\nالتخصص: ${specialty}\nالعيادة: ${clinicName || 'غير محدد'}\nالهدف المختار: ${goal}\n\nسيقوم مستشار تسويق من فريق دوميا بالاتصال بك خلال 24 ساعة عمل لترتيب الخطوة القادمة وزيارة العيادة.\n\nمع خالص التحية،\nفريق وكالة دوميا\nagencydomya@gmail.com | +201090121000`;
 
     const agencySubject = `🚨 حجز جديد من طبيب: د. ${name} — ${specialty}`;
     const agencyBody = `=== بيانات الطبيب الجديد ===\nالاسم: د. ${name}\nالتخصص: ${specialty}\nاسم العيادة: ${clinicName || 'غير محدد'}\nالهاتف: ${phone}\nالبريد الإلكتروني: ${email || 'غير محدد'}\nرابط السوشيال ميديا: ${socialLink || 'غير محدد'}\nالهدف التسويقي: ${goal}\nرقم التشخيص المرتبط: ${diagnosisId || 'لا يوجد'}\n\n=== إجراء مطلوب ===\nيرجى الاتصال بالطبيب خلال 24 ساعة عمل.`;
 
-    // 1. To doctor
+    // Trigger emails in background
     if (email && email !== "غير محدد") {
-      await sendRealEmail(email, doctorSubject, doctorBody);
+      sendRealEmail(email, doctorSubject, doctorBody).catch(err => 
+        console.error("[Background Email] Doctor email failed:", err)
+      );
     }
-    // 2. To agency (configured email)
-    await sendRealEmail(targetReceiver, agencySubject, agencyBody);
+    sendRealEmail(targetReceiver, agencySubject, agencyBody).catch(err => 
+      console.error("[Background Email] Agency admin email failed:", err)
+    );
 
+    // Return instant success response to the doctor's browser
     res.json({
       success: true,
       submission: newSubmission,
@@ -768,10 +791,14 @@ app.post("/api/google/config", async (req, res) => {
     // Load existing config to preserve refreshToken
     const existingConfig = await loadGoogleConfig();
     
+    // Auto-extract Spreadsheet ID if full URL is pasted
+    const rawSpreadsheetId = spreadsheetId !== undefined ? spreadsheetId : (existingConfig.spreadsheetId || "");
+    const cleanSpreadsheetId = extractSpreadsheetId(rawSpreadsheetId);
+    
     const updatedConfig = {
       ...existingConfig,
       accessToken: accessToken !== undefined ? accessToken : (existingConfig.accessToken || ""), 
-      spreadsheetId: spreadsheetId !== undefined ? spreadsheetId : (existingConfig.spreadsheetId || ""),
+      spreadsheetId: cleanSpreadsheetId,
       webhookUrl: webhookUrl !== undefined ? webhookUrl : (existingConfig.webhookUrl || ""),
       receiverEmail: receiverEmail !== undefined ? receiverEmail : (existingConfig.receiverEmail || "agencydomya@gmail.com"),
       smtpUser: smtpUser !== undefined ? smtpUser : (existingConfig.smtpUser || ""),
