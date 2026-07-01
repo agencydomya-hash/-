@@ -11,3 +11,4 @@ submissions.json
 email_logs.json
 
 .vercel
+.env*

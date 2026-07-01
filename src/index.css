@@ -148,3 +148,46 @@
   width: max-content;
   animation: marquee-scroll 25s linear infinite;
 }
+
+/* Premium Mobile UI Customizations */
+@keyframes pulse-subtle {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 4px 22px rgba(255, 107, 53, 0.55);
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s infinite ease-in-out;
+}
+
+/* Universal active tap feedback for interactive elements */
+button, 
+.interactive-tab, 
+a.btn {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, opacity 0.2s ease;
+}
+
+button:active, 
+.interactive-tab:active,
+a.btn:active {
+  transform: scale(0.95) !important;
+}
+
+/* Safe areas support for modern phones (notched iPhones/Androids) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+}
+
+/* Hide scrollbar on swipeable horizontal containers */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

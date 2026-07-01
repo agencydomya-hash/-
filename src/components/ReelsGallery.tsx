@@ -74,7 +74,11 @@ const REELS_DATA: Reel[] = [
   }
 ];
 
-export default function ReelsGallery() {
+interface ReelsGalleryProps {
+  lang?: 'ar' | 'en';
+}
+
+export default function ReelsGallery({ lang = 'ar' }: ReelsGalleryProps) {
   const [reels, setReels] = useState<Reel[]>([]);
   const [activeReelIndex, setActiveReelIndex] = useState<number>(0);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
@@ -83,6 +87,19 @@ export default function ReelsGallery() {
   const [cardImageIndices, setCardImageIndices] = useState<Record<string, number>>({});
   
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const isEn = lang === 'en';
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollContainerRef.current) {
+      const amount = (direction === 'left' ? -320 : 320) * (isEn ? 1 : -1);
+      scrollContainerRef.current.scrollBy({
+        left: amount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const prevImage = (e: React.MouseEvent, showcase: any) => {
     e.stopPropagation();
@@ -109,16 +126,7 @@ export default function ReelsGallery() {
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((r: any) => ({
-              ...r,
-              specialty: (r.specialty || "").replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu, ""),
-              challenge: r.challenge || "غياب التواجد الرقمي الممنهج وصعوبة بناء الثقة الرقمية مع المرضى قبل الحجز.",
-              result: r.result || "زيادة الحجوزات الفعلية بنسبة تتجاوز 150% بالعيادة.",
-              treatment: r.treatment || "إنتاج محتوى Reels عالي الجودة بالعيادة مع كتابة نصوص طبية تبسط المعلومة.",
-              views: r.views || "100K+",
-              coverColor: r.coverColor || "from-blue-950 to-orange-600"
-            }));
-            setReels(mapped);
+            setReels(data);
           } else {
             setReels(REELS_DATA);
           }
@@ -132,7 +140,6 @@ export default function ReelsGallery() {
     fetchReels();
   }, []);
 
-  // Handle Play/Pause for individual videos
   useEffect(() => {
     videoRefs.current.forEach((ref, idx) => {
       if (!ref) return;
@@ -150,9 +157,9 @@ export default function ReelsGallery() {
   const handleCardClick = (index: number) => {
     setActiveReelIndex(index);
     if (playingIndex === index) {
-      setPlayingIndex(null); // Pause if clicking already playing
+      setPlayingIndex(null);
     } else {
-      setPlayingIndex(index); // Play clicked
+      setPlayingIndex(index);
     }
   };
 
@@ -162,7 +169,7 @@ export default function ReelsGallery() {
   };
 
   const handleCTABooking = () => {
-    setShowToast("جاري توجيهك لملء استمارة حجز جلسة التصوير المجانية...");
+    setShowToast(isEn ? "Redirecting to free consultation booking form..." : "جاري توجيهك لملء استمارة حجز جلسة التصوير المجانية...");
     setTimeout(() => {
       const bookingSection = document.getElementById("booking-section");
       if (bookingSection) {
@@ -178,18 +185,77 @@ export default function ReelsGallery() {
     }
   }, [showToast]);
 
-  const videoReels = reels.filter(r => r.mediaType !== 'images');
-  const imageReels = reels.filter(r => r.mediaType === 'images');
+  const rawVideoReels = reels.filter(r => r.mediaType !== 'images');
+  const rawImageReels = reels.filter(r => r.mediaType === 'images');
+
+  const translateReel = (reel: Reel) => {
+    if (!isEn) return reel;
+    if (reel.id === 'reel_derma') {
+      return {
+        ...reel,
+        specialty: "Dermatology & Aesthetic",
+        doctorName: "Dr. Heba Sharaf El-Din",
+        title: "Why Botox is not just a luxury? The complete truth in 60s!",
+        challenge: "Difficulty in convincing patients of therapeutic Botox benefits and fear of unnatural results, leading to low booking conversion.",
+        result: "220% increase in direct dermatology clinic bookings within a month of video launch.",
+        treatment: "Close-up cinematic shoots showcasing natural aesthetics with fast-paced editing focused on medical explanations in simple terms.",
+        qualityPillars: [
+          "Soft cinematic lighting highlighting skin glow",
+          "Comprehensive script targeting the medical side of Botox",
+          "Color-grading matching high-end clinics aesthetics"
+        ]
+      };
+    }
+    if (reel.id === 'reel_dental') {
+      return {
+        ...reel,
+        specialty: "Dental & Oral Surgery",
+        doctorName: "Dr. Ahmed Raafat",
+        title: "From fear to a complete smile: The 1-day digital dental implant journey",
+        challenge: "Intense patient fear of surgical pain and skepticism towards the speed and quality of same-day digital implants.",
+        result: "300% increase in digital implant consultations and doubling actual clinic bookings.",
+        treatment: "Documenting a real patient's live experience before/after, emphasizing comfort and advanced digital tools.",
+        qualityPillars: [
+          "Capturing fine surgical details with total clarity",
+          "Visual effects explaining digital implant steps",
+          "Dynamic pacing to build trust and relieve anxiety"
+        ]
+      };
+    }
+    if (reel.id === 'reel_pedia') {
+      return {
+        ...reel,
+        specialty: "Pediatrics & Neonatology",
+        doctorName: "Dr. Adel El-Shazly",
+        title: "First step if your child's fever spikes suddenly at night!",
+        challenge: "Difficulty in explaining pediatric emergencies to mothers without causing panic, and building a trusted contact channel.",
+        result: "180% increase in clinic reservation inquiries via automated chat funnel.",
+        treatment: "Visual guides showing compress application, combined with comforting sound effects emphasizing the doctor's empathy.",
+        qualityPillars: [
+          "Calm sound effects comforting anxious parents",
+          "Script simplifying child emergencies with medical reassurance",
+          "Warm background shoot showcasing a welcoming child clinic"
+        ]
+      };
+    }
+    return {
+      ...reel,
+      doctorName: reel.doctorName.replace("د. ", "Dr. "),
+      views: reel.views.replace("مشاهدة", "views").replace("ألف", "K")
+    };
+  };
+
+  const videoReels = rawVideoReels.map(translateReel);
+  const imageReels = rawImageReels.map(translateReel);
 
   if (reels.length === 0) return null;
 
   const currentActiveReel = videoReels[activeReelIndex] || videoReels[0] || null;
 
   return (
-    <section className="py-24 bg-[#F0F4F8] text-[#2C3E50] border-b border-slate-200 relative z-10" id="reels-gallery">
+    <section className="py-24 bg-[#F0F4F8] dark:bg-slate-950 text-[#2C3E50] dark:text-slate-200 border-b border-slate-200 dark:border-slate-800 relative z-10 transition-colors" id="reels-gallery">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Toast Alert */}
         <AnimatePresence>
           {showToast && (
             <motion.div
@@ -203,118 +269,132 @@ export default function ReelsGallery() {
           )}
         </AnimatePresence>
 
-        {/* Section Header */}
-        <div className="text-center mb-16 space-y-3" dir="rtl">
+        <div className={`text-center mb-16 space-y-3 ${isEn ? 'text-left lg:text-center' : 'text-right lg:text-center'}`} dir={isEn ? "ltr" : "rtl"}>
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF6B35]/10 border border-[#FF6B35]/25 text-[#FF6B35] rounded-full text-sm font-semibold">
             <Video className="w-4 h-4" />
-            <span>سينما عيادة دوميا 🎬</span>
+            <span>{isEn ? "DOMYA Clinic Cinema 🎬" : "سينما عيادة دوميا 🎬"}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#003D7A]">
-            معرض الفيديوهات ودراسات النجاح الطبية
+          <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#003D7A] dark:text-white">
+            {isEn ? "Cinematic Portfolio & Medical Case Studies" : "معرض الفيديوهات ودراسات النجاح الطبية"}
           </h2>
-          <p className="text-[#2C3E50] max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-semibold">
-            شاهد نماذج الفيديوهات السينمائية لأطبائنا مباشرة من الصفحة. اضغط على أي فيديو لتشغيله واكتشاف الأرقام ودراسة الحالة بالتفصيل أدناه.
+          <p className="text-[#2C3E50] dark:text-slate-300 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-semibold">
+            {isEn 
+              ? "Watch cinema-quality video samples from our doctors. Click any video to play, see case details, and view clinic growth numbers below."
+              : "شاهد نماذج الفيديوهات السينمائية لأطبائنا مباشرة من الصفحة. اضغط على أي فيديو لتشغيله واكتشاف الأرقام ودراسة الحالة بالتفصيل أدناه."
+            }
           </p>
         </div>
 
-        {/* 3-Column Video Portrait Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12" dir="rtl">
-          {videoReels.map((reel, index) => {
-            const isSelected = index === activeReelIndex;
-            const isCurrentlyPlaying = index === playingIndex;
+        <div className="relative max-w-6xl mx-auto mb-12 px-2 sm:px-0 group/slider">
+          <button 
+            onClick={() => scroll('left')}
+            className="absolute left-2 lg:-left-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-slate-900/90 hover:bg-[#FF6B35] hover:text-white text-[#003D7A] dark:text-white p-2.5 sm:p-3.5 rounded-full shadow-lg border border-slate-200/40 dark:border-slate-800 flex items-center justify-center transition active:scale-90 cursor-pointer lg:opacity-0 lg:group-hover/slider:opacity-100 z-30"
+            aria-label="Scroll Left"
+          >
+            <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
+          
+          <button 
+            onClick={() => scroll('right')}
+            className="absolute right-2 lg:-right-6 top-1/2 -translate-y-1/2 z-20 bg-white/90 dark:bg-slate-900/90 hover:bg-[#FF6B35] hover:text-white text-[#003D7A] dark:text-white p-2.5 sm:p-3.5 rounded-full shadow-lg border border-slate-200/40 dark:border-slate-800 flex items-center justify-center transition active:scale-90 cursor-pointer lg:opacity-0 lg:group-hover/slider:opacity-100 z-30"
+            aria-label="Scroll Right"
+          >
+            <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+          </button>
 
-            return (
-              <motion.div
-                key={reel.id}
-                whileHover={{ y: -4, scale: 1.01 }}
-                onClick={() => handleCardClick(index)}
-                className={`group cursor-pointer relative aspect-[9/16] rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-lg transition-all duration-300 border-2 ${
-                  isSelected 
-                    ? 'border-[#FF6B35] shadow-orange-500/20' 
-                    : 'border-slate-200 hover:border-[#FF6B35]/40'
-                }`}
-              >
-                {/* Video Element */}
-                <video
-                  ref={(el) => { videoRefs.current[index] = el; }}
-                  src={reel.videoUrl || "/uploads/1782738053406_5.mp4"}
-                  poster={reel.coverUrl}
-                  className={`absolute inset-0 w-full h-full object-contain bg-slate-950 transition-opacity duration-300 ${
-                    isCurrentlyPlaying ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'
+          <div 
+            ref={scrollContainerRef}
+            className="flex overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-4 sm:pb-0 scrollbar-none scroll-smooth snap-x snap-mandatory" 
+            dir={isEn ? "ltr" : "rtl"}
+          >
+            {videoReels.map((reel, index) => {
+              const isSelected = index === activeReelIndex;
+              const isCurrentlyPlaying = index === playingIndex;
+
+              return (
+                <motion.div
+                  key={reel.id}
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  onClick={() => handleCardClick(index)}
+                  className={`group cursor-pointer relative aspect-[9/16] w-[80vw] sm:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-lg transition-all duration-300 border-2 ${
+                    isSelected 
+                      ? 'border-[#FF6B35] shadow-orange-500/20' 
+                      : 'border-slate-200 dark:border-slate-800 hover:border-[#FF6B35]/40'
                   }`}
-                  loop
-                  playsInline
-                  muted={isMuted}
-                />
-
-                {/* Cover Image fallback if not playing */}
-                {!isCurrentlyPlaying && reel.coverUrl && (
-                  <img
-                    src={reel.coverUrl}
-                    alt={reel.title}
-                    className="absolute inset-0 w-full h-full object-contain bg-slate-950 transition-transform duration-700 group-hover:scale-102"
-                    loading="lazy"
+                >
+                  <video
+                    ref={(el) => { videoRefs.current[index] = el; }}
+                    src={reel.videoUrl || "/uploads/1782738053406_5.mp4"}
+                    poster={reel.coverUrl}
+                    className={`absolute inset-0 w-full h-full object-contain bg-slate-950 transition-opacity duration-300 ${
+                      isCurrentlyPlaying ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'
+                    }`}
+                    loop
+                    playsInline
+                    muted={isMuted}
                   />
-                )}
 
-                {/* Dark Gradient Overlay for text readability */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10 transition-opacity duration-300" />
-
-                {/* View Count Badge (Top Right) */}
-                <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-white text-[10px] sm:text-xs font-bold">
-                  <Eye className="w-3.5 h-3.5 text-orange-400" />
-                  <span>{reel.views} مشاهدة</span>
-                </div>
-
-                {/* Mute/Unmute Indicator (only visible when playing) */}
-                {isCurrentlyPlaying && (
-                  <button
-                    onClick={toggleMute}
-                    className="absolute top-4 left-4 z-20 p-2 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-[#FF6B35] transition"
-                    aria-label={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {isMuted ? <VolumeX className="w-3.5 h-3.5 text-orange-400" /> : <Volume2 className="w-3.5 h-3.5" />}
-                  </button>
-                )}
-
-                {/* Play/Pause Button Overlay (Center) */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  {!isCurrentlyPlaying ? (
-                    <div className="w-14 h-14 rounded-full bg-black/55 backdrop-blur-sm flex items-center justify-center border border-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF6B35] group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-orange-500/30">
-                      <Play className="w-5 h-5 fill-current text-white ml-1" />
-                    </div>
-                  ) : (
-                    <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <Pause className="w-5 h-5 text-white" />
-                    </div>
+                  {!isCurrentlyPlaying && reel.coverUrl && (
+                    <img
+                      src={reel.coverUrl}
+                      alt={reel.title}
+                      className="absolute inset-0 w-full h-full object-contain bg-slate-950 transition-transform duration-700 group-hover:scale-102"
+                      loading="lazy"
+                    />
                   )}
-                </div>
 
-                {/* Specialty Tag */}
-                <div className="absolute bottom-28 right-5 z-10 px-2 py-0.5 bg-[#FF6B35] text-white text-[10px] font-bold rounded">
-                  {reel.specialty}
-                </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10 transition-opacity duration-300" />
 
-                {/* Card Title & Doctor */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-right text-white z-10 space-y-2">
-                  <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
-                    {reel.title}
-                  </h3>
-                  <div className="flex items-center gap-2 pt-1 border-t border-white/10">
-                    <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-orange-400 border border-white/10">
-                      <User className="w-3 h-3" />
-                    </div>
-                    <span className="text-xs font-semibold text-slate-300">{reel.doctorName}</span>
+                  <div className={`absolute top-4 ${isEn ? 'right-4' : 'right-4'} z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-white text-[10px] sm:text-xs font-bold`}>
+                    <Eye className="w-3.5 h-3.5 text-orange-400" />
+                    <span>{reel.views} {isEn ? "views" : "مشاهدة"}</span>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
+
+                  {isCurrentlyPlaying && (
+                    <button
+                      onClick={toggleMute}
+                      className={`absolute top-4 ${isEn ? 'left-4' : 'left-4'} z-20 p-2 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-white hover:bg-[#FF6B35] transition`}
+                      aria-label={isMuted ? "Unmute" : "Mute"}
+                    >
+                      {isMuted ? <VolumeX className="w-3.5 h-3.5 text-orange-400" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {!isCurrentlyPlaying ? (
+                      <div className="w-14 h-14 rounded-full bg-black/55 backdrop-blur-sm flex items-center justify-center border border-white/20 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#FF6B35] group-hover:border-transparent group-hover:shadow-lg group-hover:shadow-orange-500/30">
+                        <Play className={`w-5 h-5 fill-current text-white ${isEn ? 'ml-1' : 'mr-1'}`} />
+                      </div>
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center border border-white/15 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <Pause className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`absolute bottom-28 ${isEn ? 'left-5' : 'right-5'} z-10 px-2 py-0.5 bg-[#FF6B35] text-white text-[10px] font-bold rounded`}>
+                    {reel.specialty}
+                  </div>
+
+                  <div className={`absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end ${isEn ? 'text-left' : 'text-right'} text-white z-10 space-y-2`}>
+                    <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
+                      {reel.title}
+                    </h3>
+                    <div className={`flex items-center gap-2 pt-1 border-t border-white/10 ${isEn ? 'justify-start' : 'justify-start'}`}>
+                      <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-orange-400 border border-white/10">
+                        <User className="w-3 h-3" />
+                      </div>
+                      <span className="text-xs font-semibold text-slate-300">{reel.doctorName}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* Case Study Details Panel (Directly inline below the grid) */}
         {currentActiveReel && (
-          <div className="max-w-6xl mx-auto mb-16" dir="rtl">
+          <div className="max-w-6xl mx-auto mb-16" dir={isEn ? "ltr" : "rtl"}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentActiveReel.id}
@@ -322,36 +402,34 @@ export default function ReelsGallery() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -15 }}
                 transition={{ duration: 0.3 }}
-                className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-md text-[#2C3E50]"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-md text-[#2C3E50] dark:text-slate-200 transition-colors"
               >
-                {/* Premium color bar */}
-                <div className="absolute top-0 right-0 bottom-0 w-2 bg-[#FF6B35]" />
+                <div className={`absolute top-0 ${isEn ? 'left-0' : 'right-0'} bottom-0 w-2 bg-[#FF6B35]`} />
 
-                <div className="md:flex md:items-center md:justify-between gap-6 pb-6 border-b border-slate-100">
-                  <div className="flex items-center gap-4">
+                <div className={`md:flex md:items-center md:justify-between gap-6 pb-6 border-b border-slate-100 dark:border-slate-800`}>
+                  <div className={`flex items-center gap-4`}>
                     <div className="w-12 h-12 rounded-full bg-[#FF6B35]/10 flex items-center justify-center text-[#FF6B35] border border-orange-500/25">
                       <User className="w-6 h-6" />
                     </div>
-                    <div>
-                      <h3 className="text-lg sm:text-xl font-bold text-[#003D7A]">{currentActiveReel.doctorName}</h3>
+                    <div className={isEn ? "text-left" : "text-right"}>
+                      <h3 className="text-lg sm:text-xl font-bold text-[#003D7A] dark:text-white">{currentActiveReel.doctorName}</h3>
                       <span className="text-xs font-bold text-slate-400 block mt-0.5">{currentActiveReel.specialty}</span>
                     </div>
                   </div>
 
-                  <div className="mt-4 md:mt-0 bg-emerald-50 border border-emerald-200 py-2.5 px-4 rounded-xl flex items-center gap-2.5">
+                  <div className="mt-4 md:mt-0 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/35 py-2.5 px-4 rounded-xl flex items-center gap-2.5">
                     <TrendingUp className="w-4 h-4 text-emerald-600" />
                     <span className="text-xs sm:text-sm font-bold text-[#FF6B35]">{currentActiveReel.result}</span>
                   </div>
                 </div>
 
-                {/* Case Study Body Info */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold text-[#FF6B35] flex items-center gap-1.5 font-sans">
                       <Stethoscope className="w-4 h-4" />
-                      <span>حالة العيادة والتحدي التسويقي:</span>
+                      <span>{isEn ? "Clinic Profile & Marketing Challenge:" : "حالة العيادة والتحدي التسويقي:"}</span>
                     </h4>
-                    <p className="text-xs sm:text-sm text-slate-650 leading-relaxed font-semibold">
+                    <p className={`text-xs sm:text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-semibold ${isEn ? 'text-left' : 'text-right'}`}>
                       {currentActiveReel.challenge}
                     </p>
                   </div>
@@ -359,19 +437,22 @@ export default function ReelsGallery() {
                   <div className="space-y-2">
                     <h4 className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 font-sans">
                       <CheckCircle2 className="w-4 h-4" />
-                      <span>خطة الإنتاج وجودة المحتوى:</span>
+                      <span>{isEn ? "Production Plan & Content Quality:" : "خطة الإنتاج وجودة المحتوى:"}</span>
                     </h4>
-                    <p className="text-xs sm:text-sm text-slate-650 leading-relaxed font-semibold">
+                    <p className={`text-xs sm:text-sm text-slate-650 dark:text-slate-300 leading-relaxed font-semibold ${isEn ? 'text-left' : 'text-right'}`}>
                       {currentActiveReel.treatment}
                     </p>
                   </div>
                 </div>
 
-                {/* CTA Panel Row */}
-                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="text-right">
-                    <h4 className="text-xs font-bold text-[#003D7A]">هل ترغب في نتائج نمو مماثلة لعيادتك؟</h4>
-                    <p className="text-xs font-semibold text-slate-500 mt-1">اضغط على الزر لحجز جلسة التصوير والاستشارة المجانية فوراً.</p>
+                <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div className={isEn ? "text-left" : "text-right"}>
+                    <h4 className="text-xs font-bold text-[#003D7A] dark:text-white">
+                      {isEn ? "Want similar growth results for your clinic?" : "هل ترغب في نتائج نمو مماثلة لعيادتك؟"}
+                    </h4>
+                    <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                      {isEn ? "Click the button to book your free cinematic shoot and growth consultation now." : "اضغط على الزر لحجز جلسة التصوير والاستشارة المجانية فوراً."}
+                    </p>
                   </div>
                   
                   <button
@@ -379,43 +460,44 @@ export default function ReelsGallery() {
                     className="w-full sm:w-auto px-6 py-3 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-103"
                   >
                     <Sparkles className="w-4 h-4" />
-                    <span>تصوير ميديا مماثلة لعيادتي 📲</span>
+                    <span>{isEn ? "Produce Similar Media for My Clinic 📲" : "تصوير ميديا مماثلة لعيادتي 📲"}</span>
                   </button>
                 </div>
-
               </motion.div>
             </AnimatePresence>
           </div>
         )}
 
-        {/* Section 2: Clinic Showcase Carousel (Photos) */}
         {imageReels.length > 0 && (
-          <div className="mt-24 border-t border-slate-200/60 pt-20">
-            {/* Header */}
-            <div className="text-center mb-16 space-y-3" dir="rtl">
+          <div className="mt-24 border-t border-slate-200/60 dark:border-slate-800/80 pt-20">
+            <div className={`text-center mb-16 space-y-3 ${isEn ? 'text-left lg:text-center' : 'text-right lg:text-center'}`} dir={isEn ? "ltr" : "rtl"}>
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF6B35]/10 border border-[#FF6B35]/25 text-[#FF6B35] rounded-full text-sm font-semibold">
                 <Image className="w-4 h-4" />
-                <span>ألبوم الهوية البصرية وجلسات التصوير 📸</span>
+                <span>{isEn ? "Visual Identity & Photo Shoots Album 📸" : "ألبوم الهوية البصرية وجلسات التصوير 📸"}</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#003D7A]">
-                معرض الجلسات الفوتوغرافية وتصميم العيادات
+              <h2 className="text-3xl sm:text-4xl font-sans font-black text-[#003D7A] dark:text-white">
+                {isEn ? "Clinic Photo Shoots & Design Showcase" : "معرض الجلسات الفوتوغرافية وتصميم العيادات"}
               </h2>
-              <p className="text-[#2C3E50] max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-semibold">
-                تصفح صور جلسات تصوير الأطباء، وتصميمات الهويات البصرية للعيادات التي قمنا بإنشائها.
+              <p className="text-[#2C3E50] dark:text-slate-300 max-w-2xl mx-auto text-xs sm:text-sm leading-relaxed font-semibold">
+                {isEn 
+                  ? "Browse physician photo shoots, visual branding, and luxury clinic designs built by DOMYA."
+                  : "تصفح صور جلسات تصوير الأطباء، وتصميمات الهويات البصرية للعيادات التي قمنا بإنشائها."
+                }
               </p>
             </div>
 
-            {/* Showcase Grid of Carousels */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12" dir="rtl">
+            <div 
+              className="flex overflow-x-auto sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto mb-12 px-4 pb-4 sm:px-0 sm:pb-0 scrollbar-thin scroll-smooth snap-x snap-mandatory" 
+              dir={isEn ? "ltr" : "rtl"}
+            >
               {imageReels.map((showcase) => {
                 const activeImgIdx = cardImageIndices[showcase.id] || 0;
                 const images = showcase.images || [];
                 return (
                   <div 
                     key={showcase.id} 
-                    className="group relative aspect-[9/16] rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-lg transition-all duration-300 border-2 border-slate-200 hover:border-[#FF6B35]/40"
+                    className="group relative aspect-[9/16] w-[80vw] sm:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-lg transition-all duration-300 border-2 border-slate-200 dark:border-slate-800 hover:border-[#FF6B35]/40"
                   >
-                    {/* Interactive Carousel Frame */}
                     <div className="absolute inset-0 w-full h-full bg-slate-950">
                       {images.length > 0 ? (
                         <img
@@ -424,10 +506,11 @@ export default function ReelsGallery() {
                           className="w-full h-full object-contain bg-slate-950 transition-opacity duration-300 opacity-100"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-500 italic text-xs">لا يوجد صور مرفوعة.</div>
+                        <div className="w-full h-full flex items-center justify-center text-gray-500 italic text-xs">
+                          {isEn ? "No uploaded images." : "لا يوجد صور مرفوعة."}
+                        </div>
                       )}
 
-                      {/* Navigation Arrows (Visible on card hover) */}
                       {images.length > 1 && (
                         <>
                           <button
@@ -443,7 +526,6 @@ export default function ReelsGallery() {
                             <ChevronRight className="w-4 h-4" />
                           </button>
 
-                          {/* Indicators */}
                           <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20 flex gap-1 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
                             {images.map((_, idx) => (
                               <div
@@ -458,34 +540,31 @@ export default function ReelsGallery() {
                       )}
                     </div>
 
-                    {/* Subtle Gradient Overlay for bottom text readability */}
                     <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/80 via-black/35 to-transparent pointer-events-none transition-opacity duration-300" />
 
-                    {/* Type Badge (Top Right) */}
-                    <div className="absolute top-4 right-4 z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-white text-[10px] sm:text-xs font-bold">
+                    <div className={`absolute top-4 ${isEn ? 'right-4' : 'right-4'} z-10 flex items-center gap-1 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10 text-white text-[10px] sm:text-xs font-bold`}>
                       <Image className="w-3.5 h-3.5 text-[#FF6B35]" />
-                      <span>{images.length} صور</span>
+                      <span>{images.length} {isEn ? "photos" : "صور"}</span>
                     </div>
 
-                    {/* CTA Action button (Top Left - Hover) */}
                     <button
                       onClick={handleCTABooking}
-                      className="absolute top-4 left-4 z-25 bg-[#FF6B35] hover:bg-[#E55A2B] text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-[#FF6B35]/20 cursor-pointer transition opacity-0 group-hover:opacity-100"
+                      className={`absolute top-4 ${isEn ? 'left-4' : 'left-4'} z-25 bg-[#FF6B35] hover:bg-[#E55A2B] text-white text-[10px] font-bold px-2.5 py-1 rounded-lg shadow-sm border border-[#FF6B35]/20 cursor-pointer transition opacity-0 group-hover:opacity-100`}
                     >
-                      احجز جلسة 📲
+                      {isEn ? "Book Shoot 📲" : "احجز جلسة 📲"}
                     </button>
 
                     {/* Specialty Tag */}
-                    <div className="absolute bottom-24 right-5 z-10 px-2 py-0.5 bg-[#FF6B35] text-white text-[10px] font-bold rounded">
+                    <div className={`absolute bottom-24 ${isEn ? 'left-5' : 'right-5'} z-10 px-2 py-0.5 bg-[#FF6B35] text-white text-[10px] font-bold rounded`}>
                       {showcase.specialty}
                     </div>
 
                     {/* Card Title & Doctor */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end text-right text-white z-10 space-y-2">
+                    <div className={`absolute bottom-0 left-0 right-0 p-5 flex flex-col justify-end ${isEn ? 'text-left' : 'text-right'} text-white z-10 space-y-2`}>
                       <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
                         {showcase.title}
                       </h3>
-                      <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                      <div className={`flex items-center gap-2 pt-1 border-t border-white/10 ${isEn ? 'justify-start' : 'justify-start'}`}>
                         <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-[#FF6B35] border border-white/10">
                           <User className="w-3 h-3" />
                         </div>

@@ -2,13 +2,35 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import { createServer as createViteServer } from "vite";
+// Vite is imported dynamically below only in development mode
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { v2 as cloudinary } from "cloudinary";
-
+import { Redis } from "@upstash/redis";
 dotenv.config();
+
+// --- Upstash Redis Client (for persistent storage on Vercel) ---
+// Vercel integration uses KV_REST_API_* names; fallback to UPSTASH_REDIS_REST_* for manual setup
+const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+
+const redis = (REDIS_URL && REDIS_TOKEN)
+  ? new Redis({
+      url: REDIS_URL,
+      token: REDIS_TOKEN,
+    })
+  : null;
+
+if (redis) {
+  console.log("[Redis] Upstash Redis client initialized successfully.");
+} else {
+  console.warn("[Redis] No Upstash credentials found. Using local disk storage only.");
+}
+
+// In-Memory Cache — used as a fast-path on top of Redis to avoid repeated network calls
+// within the same serverless container lifecycle.
+const MEMORY_CACHE: Record<string, any> = {};
 
 const app = express();
 app.set("trust proxy", true); // Trust the reverse proxy (Cloud Run load balancer) to parse secure/https correctly
@@ -39,68 +61,101 @@ try {
 }
 app.use("/uploads", express.static(UPLOADS_DIR));
 
-// Data file paths
+// Environment & State Configuration
+const IS_VERCEL = !!process.env.VERCEL;
 const SUBMISSIONS_FILE = path.join(process.cwd(), "submissions.json");
 const DIAGNOSES_FILE = path.join(process.cwd(), "diagnoses.json");
+const REELS_FILE = path.join(process.cwd(), "reels.json");
+const GOOGLE_CONFIG_FILE = path.join(process.cwd(), "google_config.json");
+const PARTNERS_FILE = path.join(process.cwd(), "partners.json");
+
+// Helper: read JSON data — Redis (Vercel) → Memory Cache → Disk (local dev)
+async function readJsonFile(filePath: string, defaultValue: any = []) {
+  const fileName = path.basename(filePath);
+
+  // 1. Check in-memory cache first (fastest)
+  if (fileName in MEMORY_CACHE) {
+    return MEMORY_CACHE[fileName];
+  }
+
+  // 2. On Vercel: read from Redis
+  if (IS_VERCEL && redis) {
+    try {
+      const data = await redis.get(`domya:${fileName}`);
+      if (data !== null && data !== undefined) {
+        // Cache it in memory for subsequent reads in same container
+        MEMORY_CACHE[fileName] = data;
+        return data;
+      }
+    } catch (err) {
+      console.warn(`[Redis] Failed to read ${fileName}:`, err);
+    }
+    return defaultValue;
+  }
+
+  // 3. Local environment: read from disk
+  try {
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, "utf-8");
+      const parsed = JSON.parse(data);
+      MEMORY_CACHE[fileName] = parsed;
+      return parsed;
+    }
+  } catch (err) {
+    console.warn(`Could not read ${filePath} from disk:`, err);
+  }
+  return defaultValue;
+}
+
+// Helper: write JSON data — Redis (Vercel) + Memory Cache → Disk (local dev)
+async function writeJsonFile(filePath: string, data: any) {
+  const fileName = path.basename(filePath);
+
+  // Always update in-memory cache
+  MEMORY_CACHE[fileName] = data;
+
+  // On Vercel: persist to Redis
+  if (IS_VERCEL && redis) {
+    try {
+      await redis.set(`domya:${fileName}`, JSON.stringify(data));
+      console.log(`[Redis] Successfully saved ${fileName}`);
+    } catch (err) {
+      console.error(`[Redis] Failed to write ${fileName}:`, err);
+    }
+    return;
+  }
+
+  // Local environment: write to disk
+  try {
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.warn(`Could not write ${filePath} to disk:`, err);
+  }
+}
+
+// Loaders & Savers (uses readJsonFile/writeJsonFile with async/await)
 
 // Helper to load submissions
-function loadSubmissions() {
-  try {
-    if (!fs.existsSync(SUBMISSIONS_FILE)) {
-      try {
-        fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify([], null, 2));
-      } catch (e) {
-        console.warn("Could not write submissions default placeholder:", e);
-      }
-      return [];
-    }
-    const data = fs.readFileSync(SUBMISSIONS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error loading submissions:", err);
-    return [];
-  }
+async function loadSubmissions() {
+  return await readJsonFile(SUBMISSIONS_FILE, []);
 }
 
 // Helper to save submissions
-function saveSubmissions(submissions: any[]) {
-  try {
-    fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(submissions, null, 2));
-  } catch (err) {
-    console.error("Error saving submissions:", err);
-  }
+async function saveSubmissions(submissions: any[]) {
+  await writeJsonFile(SUBMISSIONS_FILE, submissions);
 }
 
 // Helper to load diagnoses
-function loadDiagnoses() {
-  try {
-    if (!fs.existsSync(DIAGNOSES_FILE)) {
-      try {
-        fs.writeFileSync(DIAGNOSES_FILE, JSON.stringify([], null, 2));
-      } catch (e) {
-        console.warn("Could not write diagnoses default placeholder:", e);
-      }
-      return [];
-    }
-    const data = fs.readFileSync(DIAGNOSES_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error loading diagnoses:", err);
-    return [];
-  }
+async function loadDiagnoses() {
+  return await readJsonFile(DIAGNOSES_FILE, []);
 }
 
 // Helper to save diagnoses
-function saveDiagnoses(diagnoses: any[]) {
-  try {
-    fs.writeFileSync(DIAGNOSES_FILE, JSON.stringify(diagnoses, null, 2));
-  } catch (err) {
-    console.error("Error saving diagnoses:", err);
-  }
+async function saveDiagnoses(diagnoses: any[]) {
+  await writeJsonFile(DIAGNOSES_FILE, diagnoses);
 }
 
-const REELS_FILE = path.join(process.cwd(), "reels.json");
-const GOOGLE_CONFIG_FILE = path.join(process.cwd(), "google_config.json");
+
 
 const DEFAULT_REELS = [
   {
@@ -167,50 +222,21 @@ const DEFAULT_REELS = [
   }
 ];
 
-function loadReels() {
-  try {
-    if (!fs.existsSync(REELS_FILE)) {
-      try {
-        fs.writeFileSync(REELS_FILE, JSON.stringify(DEFAULT_REELS, null, 2));
-      } catch (e) {
-        console.warn("Could not write default reels placeholder:", e);
-      }
-      return DEFAULT_REELS;
-    }
-    const data = fs.readFileSync(REELS_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    console.error("Error loading reels:", err);
-    return DEFAULT_REELS;
-  }
+async function loadReels() {
+  const data = await readJsonFile(REELS_FILE, null);
+  return data || DEFAULT_REELS;
 }
 
-function saveReels(reels: any[]) {
-  try {
-    fs.writeFileSync(REELS_FILE, JSON.stringify(reels, null, 2));
-  } catch (err) {
-    console.error("Error saving reels:", err);
-  }
+async function saveReels(reels: any[]) {
+  await writeJsonFile(REELS_FILE, reels);
 }
 
-function loadGoogleConfig() {
-  try {
-    if (!fs.existsSync(GOOGLE_CONFIG_FILE)) {
-      return { accessToken: "", spreadsheetId: "" };
-    }
-    const data = fs.readFileSync(GOOGLE_CONFIG_FILE, "utf-8");
-    return JSON.parse(data);
-  } catch (err) {
-    return { accessToken: "", spreadsheetId: "" };
-  }
+async function loadGoogleConfig() {
+  return await readJsonFile(GOOGLE_CONFIG_FILE, { accessToken: "", spreadsheetId: "" });
 }
 
-function saveGoogleConfig(config: any) {
-  try {
-    fs.writeFileSync(GOOGLE_CONFIG_FILE, JSON.stringify(config, null, 2));
-  } catch (err) {
-    console.error("Error saving google config:", err);
-  }
+async function saveGoogleConfig(config: any) {
+  await writeJsonFile(GOOGLE_CONFIG_FILE, config);
 }
 
 // Google OAuth Application Credentials (provided by environment variables)
@@ -219,7 +245,7 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
 
 // Auto-refreshes Google Access Token if a refresh token is present
 async function refreshGoogleAccessToken(): Promise<string | null> {
-  const config = loadGoogleConfig();
+  const config = await loadGoogleConfig();
   if (!config.refreshToken) {
     console.log("[Google API] No refresh token found, cannot refresh access token.");
     return null;
@@ -249,7 +275,7 @@ async function refreshGoogleAccessToken(): Promise<string | null> {
 
     const tokens = await tokenRes.json();
     config.accessToken = tokens.access_token;
-    saveGoogleConfig(config);
+    await saveGoogleConfig(config);
     console.log("[Google API] Access token refreshed successfully.");
     return tokens.access_token;
   } catch (err) {
@@ -260,7 +286,7 @@ async function refreshGoogleAccessToken(): Promise<string | null> {
 
 // Unified Google Sheets row sync helper (handles token expiry automatically)
 async function syncToGoogleSheets(rowValues: any[]): Promise<boolean> {
-  const config = loadGoogleConfig();
+  const config = await loadGoogleConfig();
   if (!config.spreadsheetId || !config.accessToken) {
     return false;
   }
@@ -449,9 +475,9 @@ app.post("/api/diagnose", async (req, res) => {
     }
 
     // Save diagnosis history
-    const diagnoses = loadDiagnoses();
+    const diagnoses = await loadDiagnoses();
     diagnoses.push(finalDiagnosis);
-    saveDiagnoses(diagnoses);
+    await saveDiagnoses(diagnoses);
 
     // --- EMAIL AUTOMATION FLOW ---
     
@@ -514,7 +540,7 @@ ${finalDiagnosis.prescriptionRx.join("\n")}`;
 
 // Helper for sending real emails using Gmail API or SMTP fallback
 async function sendRealEmail(to: string, subject: string, body: string) {
-  const gConfig = loadGoogleConfig();
+  const gConfig = await loadGoogleConfig();
   let sentSuccessfully = false;
   let methodUsed = "none";
 
@@ -606,10 +632,7 @@ async function sendRealEmail(to: string, subject: string, body: string) {
 
   // Always log locally
   const logFile = path.join(process.cwd(), "email_logs.json");
-  let logs: any[] = [];
-  if (fs.existsSync(logFile)) {
-    try { logs = JSON.parse(fs.readFileSync(logFile, "utf-8")); } catch {}
-  }
+  let logs: any[] = await readJsonFile(logFile, []);
   logs.push({
     id: `log_mail_${Date.now()}`,
     timestamp: new Date().toISOString(),
@@ -619,7 +642,7 @@ async function sendRealEmail(to: string, subject: string, body: string) {
     sentSuccessfully,
     methodUsed
   });
-  fs.writeFileSync(logFile, JSON.stringify(logs, null, 2));
+  await writeJsonFile(logFile, logs);
 }
 
 // 2. Form Submission API (Booking consultation)
@@ -631,7 +654,7 @@ app.post("/api/submit", async (req, res) => {
       return res.status(400).json({ error: "برجاء توفير الاسم، التخصص، ورقم الهاتف لإكمال الفحص." });
     }
 
-    const submissions = loadSubmissions();
+    const submissions = await loadSubmissions();
     const newSubmission = {
       id: `sub_${Date.now()}`,
       name,
@@ -649,9 +672,9 @@ app.post("/api/submit", async (req, res) => {
     };
 
     submissions.push(newSubmission);
-    saveSubmissions(submissions);
+    await saveSubmissions(submissions);
 
-    const gConfig = loadGoogleConfig();
+    const gConfig = await loadGoogleConfig();
 
      // Try to sync with Google Sheets in real-time
     try {
@@ -673,11 +696,11 @@ app.post("/api/submit", async (req, res) => {
       if (synced) {
         newSubmission.synced = true;
         // Save with updated sync status
-        const updatedSubmissions = loadSubmissions();
+        const updatedSubmissions = await loadSubmissions();
         const subIdx = updatedSubmissions.findIndex((s: any) => s.id === newSubmission.id);
         if (subIdx !== -1) {
           updatedSubmissions[subIdx].synced = true;
-          saveSubmissions(updatedSubmissions);
+          await saveSubmissions(updatedSubmissions);
         }
       }
     } catch (sheetErr) {
@@ -735,20 +758,27 @@ app.post("/api/submit", async (req, res) => {
 // Google Workspace Integration Endpoints
 
 // Save Google Sheets Config
-app.post("/api/google/config", (req, res) => {
+app.post("/api/google/config", async (req, res) => {
   try {
     const { auth, accessToken, spreadsheetId, webhookUrl, receiverEmail, smtpUser, smtpPass } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
-    saveGoogleConfig({ 
-      accessToken: accessToken || "", 
-      spreadsheetId: spreadsheetId || "",
-      webhookUrl: webhookUrl || "",
-      receiverEmail: receiverEmail || "agencydomya@gmail.com",
-      smtpUser: smtpUser || "",
-      smtpPass: smtpPass || ""
-    });
+    
+    // Load existing config to preserve refreshToken
+    const existingConfig = await loadGoogleConfig();
+    
+    const updatedConfig = {
+      ...existingConfig,
+      accessToken: accessToken !== undefined ? accessToken : (existingConfig.accessToken || ""), 
+      spreadsheetId: spreadsheetId !== undefined ? spreadsheetId : (existingConfig.spreadsheetId || ""),
+      webhookUrl: webhookUrl !== undefined ? webhookUrl : (existingConfig.webhookUrl || ""),
+      receiverEmail: receiverEmail !== undefined ? receiverEmail : (existingConfig.receiverEmail || "agencydomya@gmail.com"),
+      smtpUser: smtpUser !== undefined ? smtpUser : (existingConfig.smtpUser || ""),
+      smtpPass: smtpPass !== undefined ? smtpPass : (existingConfig.smtpPass || "")
+    };
+
+    await saveGoogleConfig(updatedConfig);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: "فشل حفظ إعدادات جوجل." });
@@ -756,13 +786,13 @@ app.post("/api/google/config", (req, res) => {
 });
 
 // Fetch Google Sheets Config
-app.get("/api/google/config", (req, res) => {
+app.get("/api/google/config", async (req, res) => {
   try {
     const { auth } = req.query;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
-    const config = loadGoogleConfig();
+    const config = await loadGoogleConfig();
     res.json({
       spreadsheetId: config.spreadsheetId || "",
       accessToken: config.accessToken || "",
@@ -784,7 +814,7 @@ app.post("/api/google/sync-pending", async (req, res) => {
       return res.status(401).json({ error: "غير مصرح." });
     }
 
-    const config = loadGoogleConfig();
+    const config = await loadGoogleConfig();
     const sheetId = config.spreadsheetId;
 
     if (!sheetId) {
@@ -794,10 +824,10 @@ app.post("/api/google/sync-pending", async (req, res) => {
     // Update config with fresh token if sent manually
     if (accessToken) {
       config.accessToken = accessToken;
-      saveGoogleConfig(config);
+      await saveGoogleConfig(config);
     }
 
-    const submissions = loadSubmissions();
+    const submissions = await loadSubmissions();
     const pending = submissions.filter((s: any) => !s.synced);
 
     if (pending.length === 0) {
@@ -832,7 +862,7 @@ app.post("/api/google/sync-pending", async (req, res) => {
     }
 
     if (successCount > 0) {
-      saveSubmissions(submissions);
+      await saveSubmissions(submissions);
     }
 
     res.json({ success: true, count: successCount });
@@ -898,12 +928,12 @@ app.get("/api/google/callback", async (req, res) => {
     const { access_token, refresh_token } = tokens;
 
     // Save to google_config.json
-    const config = loadGoogleConfig();
+    const config = await loadGoogleConfig();
     config.accessToken = access_token;
     if (refresh_token) {
       config.refreshToken = refresh_token;
     }
-    saveGoogleConfig(config);
+    await saveGoogleConfig(config);
 
     console.log("[Google OAuth] Successfully authorized with client secret and stored refresh token.");
 
@@ -967,9 +997,9 @@ app.post("/api/upload", async (req, res) => {
 });
 
 // Fetch Reference Reels
-app.get("/api/reels", (req, res) => {
+app.get("/api/reels", async (req, res) => {
   try {
-    const reels = loadReels();
+    const reels = await loadReels();
     res.json(reels);
   } catch (err) {
     res.status(500).json({ error: "فشل تحميل فيديوهات المعرض." });
@@ -977,7 +1007,7 @@ app.get("/api/reels", (req, res) => {
 });
 
 // Add or Update Reference Reel
-app.post("/api/reels", (req, res) => {
+app.post("/api/reels", async (req, res) => {
   try {
     const { auth, reel } = req.body;
     if (auth !== "domya2026") {
@@ -988,7 +1018,7 @@ app.post("/api/reels", (req, res) => {
       return res.status(400).json({ error: "الرجاء توفير جميع الحقول الأساسية للفيديو." });
     }
 
-    const reels = loadReels();
+    const reels = await loadReels();
     const existingIdx = reels.findIndex((r: any) => r.id === reel.id);
 
     if (existingIdx !== -1) {
@@ -1004,7 +1034,7 @@ app.post("/api/reels", (req, res) => {
       reels.push(newReel);
     }
 
-    saveReels(reels);
+    await saveReels(reels);
     res.json({ success: true, reels });
   } catch (err) {
     res.status(500).json({ error: "فشل حفظ بيانات الفيديو." });
@@ -1012,7 +1042,7 @@ app.post("/api/reels", (req, res) => {
 });
 
 // Delete Reference Reel
-app.delete("/api/reels/:id", (req, res) => {
+app.delete("/api/reels/:id", async (req, res) => {
   try {
     const { auth } = req.query;
     if (auth !== "domya2026") {
@@ -1020,9 +1050,9 @@ app.delete("/api/reels/:id", (req, res) => {
     }
 
     const { id } = req.params;
-    let reels = loadReels();
+    let reels = await loadReels();
     reels = reels.filter((r: any) => r.id !== id);
-    saveReels(reels);
+    await saveReels(reels);
 
     res.json({ success: true, reels });
   } catch (err) {
@@ -1031,40 +1061,31 @@ app.delete("/api/reels/:id", (req, res) => {
 });
 
 // Partners Logo Ticker Endpoints
-const PARTNERS_FILE = path.join(process.cwd(), "partners.json");
-const loadPartners = (): string[] => {
-  if (!fs.existsSync(PARTNERS_FILE)) {
-    return [
-      "/uploads/logo_dummy_1.png",
-      "/uploads/logo_dummy_2.png",
-      "/uploads/logo_dummy_3.png",
-      "/uploads/logo_dummy_4.png",
-      "/uploads/logo_dummy_5.png"
-    ];
-  }
-  try {
-    return JSON.parse(fs.readFileSync(PARTNERS_FILE, "utf8"));
-  } catch (err) {
-    return [];
-  }
+
+const DEFAULT_PARTNERS = [
+  "/uploads/logo_dummy_1.png",
+  "/uploads/logo_dummy_2.png",
+  "/uploads/logo_dummy_3.png",
+  "/uploads/logo_dummy_4.png",
+  "/uploads/logo_dummy_5.png"
+];
+const loadPartners = async (): Promise<string[]> => {
+  const data = await readJsonFile(PARTNERS_FILE, null);
+  return data || DEFAULT_PARTNERS;
 };
-const savePartners = (partners: any[]) => {
-  try {
-    fs.writeFileSync(PARTNERS_FILE, JSON.stringify(partners, null, 2), "utf8");
-  } catch (err) {
-    console.warn("Could not save partners list locally (expected on Vercel read-only filesystem):", err);
-  }
+const savePartners = async (partners: any[]) => {
+  await writeJsonFile(PARTNERS_FILE, partners);
 };
 
-app.get("/api/partners", (req, res) => {
+app.get("/api/partners", async (req, res) => {
   try {
-    res.json(loadPartners());
+    res.json(await loadPartners());
   } catch (err) {
     res.status(500).json({ error: "فشل تحميل قائمة الشركاء." });
   }
 });
 
-app.post("/api/partners", (req, res) => {
+app.post("/api/partners", async (req, res) => {
   try {
     const { auth, partners } = req.body;
     if (auth !== "domya2026") {
@@ -1073,7 +1094,7 @@ app.post("/api/partners", (req, res) => {
     if (!Array.isArray(partners)) {
       return res.status(400).json({ error: "تنسيق البيانات غير صحيح." });
     }
-    savePartners(partners);
+    await savePartners(partners);
     res.json({ success: true, partners });
   } catch (err) {
     res.status(500).json({ error: "فشل حفظ قائمة الشركاء." });
@@ -1081,13 +1102,13 @@ app.post("/api/partners", (req, res) => {
 });
 
 // 3. Admin CRM Fetch API
-app.get("/api/submissions", (req, res) => {
+app.get("/api/submissions", async (req, res) => {
   try {
     const { auth } = req.query;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "رمز الدخول غير صالح للوصول إلى لوحة التحكم." });
     }
-    const submissions = loadSubmissions();
+    const submissions = await loadSubmissions();
     res.json(submissions);
   } catch (err) {
     res.status(500).json({ error: "فشل تحميل البيانات." });
@@ -1095,17 +1116,17 @@ app.get("/api/submissions", (req, res) => {
 });
 
 // 4. Update Submission Status
-app.post("/api/submissions/status", (req, res) => {
+app.post("/api/submissions/status", async (req, res) => {
   try {
     const { auth, id, status } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
-    const submissions = loadSubmissions();
+    const submissions = await loadSubmissions();
     const index = submissions.findIndex((s: any) => s.id === id);
     if (index !== -1) {
       submissions[index].status = status;
-      saveSubmissions(submissions);
+      await saveSubmissions(submissions);
       return res.json({ success: true, submission: submissions[index] });
     }
     res.status(404).json({ error: "الطلب غير موجود." });
@@ -1115,17 +1136,17 @@ app.post("/api/submissions/status", (req, res) => {
 });
 
 // 5. Update Submission Notes
-app.post("/api/submissions/notes", (req, res) => {
+app.post("/api/submissions/notes", async (req, res) => {
   try {
     const { auth, id, notes } = req.body;
     if (auth !== "domya2026") {
       return res.status(401).json({ error: "غير مصرح." });
     }
-    const submissions = loadSubmissions();
+    const submissions = await loadSubmissions();
     const index = submissions.findIndex((s: any) => s.id === id);
     if (index !== -1) {
       submissions[index].notes = notes;
-      saveSubmissions(submissions);
+      await saveSubmissions(submissions);
       return res.json({ success: true, submission: submissions[index] });
     }
     res.status(404).json({ error: "الطلب غير موجود." });
@@ -1136,8 +1157,9 @@ app.post("/api/submissions/notes", (req, res) => {
 
 // Start server
 async function startServer() {
-  // Integrate Vite for development
+  // Integrate Vite for development (dynamic import to avoid bundling vite in production)
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
