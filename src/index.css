@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode toggle (Tailwind v4) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ===== Design System — Domya Agency 2026 ===== */
 
 @theme {
