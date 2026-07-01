@@ -17,9 +17,23 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#F0F4F8] to-[#E0E7FF] dark:from-slate-950 dark:to-indigo-950 py-20 lg:py-28 text-[#2C3E50] dark:text-slate-200 transition-colors" id="hero-section">
+      {/* Tech Grid Pattern */}
+      <div className="absolute inset-0 tech-grid opacity-100 pointer-events-none"></div>
+
+      {/* Floating Interactive Background Elements */}
+      <div className="absolute top-12 left-[10%] w-6 h-6 text-[#FF6B35]/20 animate-float-slow hidden md:block">
+        <Stethoscope className="w-full h-full" />
+      </div>
+      <div className="absolute bottom-20 left-[15%] w-8 h-8 text-[#003D7A]/15 dark:text-white/10 animate-float-fast hidden md:block">
+        <Sparkles className="w-full h-full" />
+      </div>
+      <div className="absolute top-1/3 right-[12%] w-7 h-7 text-[#FF6B35]/15 animate-float-fast hidden md:block">
+        <Award className="w-full h-full" />
+      </div>
+
       {/* Soft light decorative blobs */}
-      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-blue-500/5 aurora-blob dark:opacity-10"></div>
-      <div className="absolute bottom-1/3 right-1/3 translate-x-1/2 w-[400px] h-[400px] rounded-full bg-[#FF6B35]/5 aurora-blob-2 dark:opacity-10"></div>
+      <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-blue-500/5 aurora-blob dark:opacity-10 pointer-events-none"></div>
+      <div className="absolute bottom-1/3 right-1/3 translate-x-1/2 w-[400px] h-[400px] rounded-full bg-[#FF6B35]/5 aurora-blob-2 dark:opacity-10 pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center" dir={isEn ? "ltr" : "rtl"}>
@@ -66,7 +80,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
             >
               <button
                 onClick={onStartDiagnosis}
-                className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 group text-lg cursor-pointer hover:-translate-y-0.5 active:translate-y-0"
+                className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30 hover:shadow-xl hover:shadow-orange-500/40 group text-lg cursor-pointer hover:-translate-y-0.5 active:translate-y-0 shine-effect"
                 id="btn-ai-diagnosis"
                 style={{ borderRadius: '8px' }}
               >
@@ -144,7 +158,7 @@ export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar'
               initial={{ opacity: 0, scale: 0.9, rotate: 1 }}
               animate={{ opacity: 1, scale: 1, rotate: -1 }}
               transition={{ duration: 0.7, delay: 0.2 }}
-              className="w-full max-w-sm bg-white dark:bg-slate-900 border border-[#E5E7EB] dark:border-slate-800 text-[#2C3E50] dark:text-slate-200 rounded-3xl shadow-xl p-6 relative overflow-hidden transition-colors"
+              className="w-full max-w-sm glass-light dark:bg-slate-900/80 border border-white/60 dark:border-slate-800/80 text-[#2C3E50] dark:text-slate-200 rounded-3xl shadow-2xl p-6 relative overflow-hidden transition-colors"
               id="prescription-hero-card"
             >
               {/* Medical clipboard clip effect */}

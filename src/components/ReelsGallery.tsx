@@ -316,10 +316,10 @@ export default function ReelsGallery({ lang = 'ar' }: ReelsGalleryProps) {
                   key={reel.id}
                   whileHover={{ y: -4, scale: 1.01 }}
                   onClick={() => handleCardClick(index)}
-                  className={`group cursor-pointer relative aspect-[9/16] w-[80vw] sm:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-lg transition-all duration-300 border-2 ${
+                  className={`group cursor-pointer relative aspect-[9/16] w-[80vw] sm:w-auto shrink-0 snap-center rounded-3xl overflow-hidden bg-slate-900 shadow-md hover:shadow-xl transition-all duration-300 border-2 ${
                     isSelected 
-                      ? 'border-[#FF6B35] shadow-orange-500/20' 
-                      : 'border-slate-200 dark:border-slate-800 hover:border-[#FF6B35]/40'
+                      ? 'border-[#FF6B35] shadow-lg shadow-orange-500/35 scale-[1.02] z-10' 
+                      : 'border-slate-200 dark:border-slate-800 hover:border-[#FF6B35]/50'
                   }`}
                 >
                   <video
@@ -457,7 +457,7 @@ export default function ReelsGallery({ lang = 'ar' }: ReelsGalleryProps) {
                   
                   <button
                     onClick={handleCTABooking}
-                    className="w-full sm:w-auto px-6 py-3 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-103"
+                    className="w-full sm:w-auto px-6 py-3 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl text-xs sm:text-sm shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 cursor-pointer transition-transform duration-300 hover:scale-103 shine-effect"
                   >
                     <Sparkles className="w-4 h-4" />
                     <span>{isEn ? "Produce Similar Media for My Clinic 📲" : "تصوير ميديا مماثلة لعيادتي 📲"}</span>

@@ -209,21 +209,56 @@ export default function DiagnosisTool({ onDiagnosisComplete, onSelectBookingWith
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0 }}
-              className="bg-white dark:bg-slate-900 border border-[#E5E7EB] dark:border-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center space-y-4 min-h-[300px] shadow-sm"
+              className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-10 flex flex-col items-center justify-center text-center space-y-6 min-h-[360px] shadow-2xl overflow-hidden tech-grid"
             >
-              <div className="w-12 h-12 border-4 border-slate-100 dark:border-slate-850 border-t-[#FF6B35] rounded-full animate-spin"></div>
-              <motion.p
-                key={loadingStep}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="text-base font-bold text-[#003D7A] dark:text-white"
-              >
-                {loadingMessages[loadingStep]}
-              </motion.p>
-              <p className="text-xs text-slate-400 dark:text-slate-500 font-semibold">
-                {isEn ? "AI is analyzing your clinic data..." : "الذكاء الاصطناعي يحلل بيانات عيادتك..."}
-              </p>
+              {/* Animated Laser Scanning Line */}
+              <div className="laser-scanner-line" />
+
+              {/* Glowing decorative circles */}
+              <div className="absolute -top-10 -left-10 w-24 h-24 rounded-full bg-[#FF6B35]/10 blur-xl pointer-events-none" />
+              <div className="absolute -bottom-10 -right-10 w-24 h-24 rounded-full bg-[#003D7A]/15 blur-xl pointer-events-none" />
+
+              {/* Medical target crosshairs or scanning icon */}
+              <div className="relative w-20 h-20 flex items-center justify-center rounded-2xl bg-orange-500/10 dark:bg-orange-950/30 border border-orange-500/25 animate-pulse">
+                <Sparkles className="w-10 h-10 text-[#FF6B35] animate-spin" style={{ animationDuration: '6s' }} />
+                {/* Corner targets */}
+                <div className="absolute top-2 left-2 w-2 h-2 border-t-2 border-l-2 border-[#FF6B35]/70" />
+                <div className="absolute top-2 right-2 w-2 h-2 border-t-2 border-r-2 border-[#FF6B35]/70" />
+                <div className="absolute bottom-2 left-2 w-2 h-2 border-b-2 border-l-2 border-[#FF6B35]/70" />
+                <div className="absolute bottom-2 right-2 w-2 h-2 border-b-2 border-r-2 border-[#FF6B35]/70" />
+              </div>
+
+              <div className="space-y-2 relative z-10">
+                <span className="text-[10px] uppercase font-mono tracking-widest text-[#FF6B35] bg-[#FF6B35]/10 border border-[#FF6B35]/25 px-2.5 py-1 rounded-md font-bold">
+                  {isEn ? "System Scan Running" : "جاري تشغيل الفحص الذكي"}
+                </span>
+                <motion.h3
+                  key={loadingStep}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="text-lg font-black text-[#003D7A] dark:text-white"
+                >
+                  {loadingMessages[loadingStep]}
+                </motion.h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500 font-mono tracking-wider">
+                  {isEn ? "SYS_AUDIT_VER: 2.0 // CALIBRATING_AI_MODELS" : "كود المعايرة الطبي الذكي // 2.0_SYS_AUDIT"}
+                </p>
+              </div>
+
+              {/* Heart rate waveform or pulse bar simulator */}
+              <div className="w-48 h-8 opacity-45 flex items-center justify-center gap-1.5">
+                {[...Array(16)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 bg-[#FF6B35] rounded-full transition-all duration-300"
+                    style={{
+                      height: `${10 + Math.sin(i * 0.8) * 18}px`,
+                      animation: `pulse-subtle 1.2s infinite ease-in-out ${i * 0.08}s`
+                    }}
+                  />
+                ))}
+              </div>
             </motion.div>
           ) : result ? (
             /* SUCCESS SCREEN WITH TESTIMONIALS */
