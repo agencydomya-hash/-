@@ -5,15 +5,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Shield, Users, RefreshCw, CheckCircle, FileSpreadsheet, Lock, AlertCircle, Sparkles, CheckSquare, Mail, ClipboardList, Database, Globe } from 'lucide-react';
+import { Shield, Users, RefreshCw, CheckCircle, FileSpreadsheet, Lock, AlertCircle, Sparkles, CheckSquare, Mail, ClipboardList, Database, Globe, Key, LogOut, Send } from 'lucide-react';
 import { DoctorSubmission } from '../types';
 import { translations } from '../translations';
 
 export default function AdminPortal() {
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return sessionStorage.getItem('domya_admin_auth') === 'true';
   });
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotMsg, setForgotMsg] = useState('');
   const [submissions, setSubmissions] = useState<DoctorSubmission[]>([]);
   const [resendingId, setResendingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -428,13 +431,43 @@ export default function AdminPortal() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === 'domya2026') {
+    if (username === 'domya_admin' && password === 'domya_secure_2026') {
       sessionStorage.setItem('domya_admin_auth', 'true');
       setIsAuthenticated(true);
       setError('');
     } else {
-      setError('كلمة المرور غير صحيحة. برجاء مراجعة الرمز السري لوكالة دومايا.');
+      setError('اسم المستخدم أو كلمة المرور غير صحيحة. برجاء التواصل مع وكالة دومايا للحصول على بيانات الدخول.');
     }
+  };
+
+  const handleForgotCredentials = async () => {
+    setForgotLoading(true);
+    setForgotMsg('');
+    try {
+      const response = await fetch('/api/admin/forgot-credentials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setForgotMsg('✅ تم إرسال بيانات الدخول إلى إيميل الوكالة بنجاح! تحقق من بريدك الإلكتروني.');
+      } else {
+        setForgotMsg('❌ ' + (data.error || 'فشل إرسال البيانات. حاول مرة أخرى.'));
+      }
+    } catch (err) {
+      setForgotMsg('❌ خطأ في الاتصال بالخادم.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('domya_admin_auth');
+    setIsAuthenticated(false);
+    setUsername('');
+    setPassword('');
+    setError('');
   };
 
   const handleResendEmail = async (id: string) => {
@@ -565,7 +598,7 @@ export default function AdminPortal() {
 
             <div className="text-center space-y-1">
               <h3 className="text-lg font-bold">بوابة المبيعات الآمنة</h3>
-              <p className="text-xs text-gray-400">برجاء إدخال رمز المرور السري لوكالة دومايا (domya2026) للوصول.</p>
+              <p className="text-xs text-gray-400">برجاء إدخال اسم المستخدم وكلمة المرور الخاصة بوكالة دومايا للوصول.</p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
@@ -576,24 +609,61 @@ export default function AdminPortal() {
                 </div>
               )}
 
+              {forgotMsg && (
+                <div className={`p-3 text-xs rounded-lg flex items-center gap-2 ${
+                  forgotMsg.startsWith('✅') 
+                    ? 'bg-emerald-950/50 border border-emerald-500/30 text-emerald-400' 
+                    : 'bg-red-950/50 border border-red-500/30 text-red-400'
+                }`}>
+                  <span>{forgotMsg}</span>
+                </div>
+              )}
+
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-gray-300">رمز الدخول الأمني</label>
+                <label className="block text-xs font-bold text-gray-300">اسم المستخدم</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="domya_admin"
+                  autoComplete="username"
+                  className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-right text-white text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-300">كلمة المرور</label>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
+                  autoComplete="current-password"
                   className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-950 focus:ring-2 focus:ring-[#FF5100] outline-none text-center font-mono tracking-widest text-white text-sm"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-3 bg-[#FF5100] hover:bg-orange-600 rounded-xl font-bold transition text-xs sm:text-sm"
+                className="w-full py-3 bg-[#FF5100] hover:bg-orange-600 rounded-xl font-bold transition text-xs sm:text-sm flex items-center justify-center gap-2"
               >
+                <Key className="w-4 h-4" />
                 فتح بوابة التحكم بالبيانات
               </button>
             </form>
+
+            <div className="border-t border-white/5 pt-4 text-center">
+              <p className="text-xs text-gray-500 mb-2">نسيت بيانات الدخول؟</p>
+              <button
+                type="button"
+                onClick={handleForgotCredentials}
+                disabled={forgotLoading}
+                className="text-xs text-orange-400 hover:text-orange-300 underline transition flex items-center gap-1.5 mx-auto disabled:opacity-50"
+              >
+                <Send className="w-3 h-3" />
+                {forgotLoading ? 'جاري الإرسال...' : 'إرسال بيانات الدخول على إيميل الوكالة'}
+              </button>
+            </div>
           </motion.div>
         ) : (
           /* Authenticated Dashboard view */
@@ -683,11 +753,12 @@ export default function AdminPortal() {
                 </button>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <button
                   onClick={fetchSubmissions}
                   disabled={loading}
                   className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-gray-300 transition flex items-center gap-1 text-xs"
+                  title="تحديث البيانات"
                 >
                   <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -700,13 +771,12 @@ export default function AdminPortal() {
                   <span>تصدير Excel/CSV</span>
                 </button>
                 <button
-                  onClick={() => {
-                    sessionStorage.removeItem('domya_admin_auth');
-                    window.location.reload();
-                  }}
-                  className="px-4 py-2 bg-red-950/40 hover:bg-red-950/60 border border-red-500/20 text-red-400 font-bold rounded-lg transition text-xs cursor-pointer"
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-900/50 hover:bg-red-800/60 border border-red-700/30 rounded-lg text-red-400 hover:text-red-300 font-bold transition text-xs flex items-center gap-1.5"
+                  title="تسجيل خروج"
                 >
-                  تسجيل الخروج 🚪
+                  <LogOut className="w-4 h-4" />
+                  <span>خروج</span>
                 </button>
               </div>
             </div>

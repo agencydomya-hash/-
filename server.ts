@@ -731,8 +731,8 @@ app.post("/api/submit", async (req, res) => {
   try {
     const { name, specialty, clinicName, phone, email, socialLink, goal, diagnosisId } = req.body;
 
-    if (!name || !specialty || !phone) {
-      return res.status(400).json({ error: "برجاء توفير الاسم، التخصص، ورقم الهاتف لإكمال الفحص." });
+    if (!name || !specialty || !phone || !email) {
+      return res.status(400).json({ error: "برجاء توفير الاسم، التخصص، رقم الهاتف، والبريد الإلكتروني لإكمال الفحص." });
     }
 
     const submissions = await loadSubmissions();
@@ -1308,6 +1308,47 @@ app.post("/api/submissions/notes", async (req, res) => {
   }
 });
 
+// Admin Portal: Forgot Credentials — emails login info to agency email
+app.post("/api/admin/forgot-credentials", async (req, res) => {
+  try {
+    const ADMIN_USERNAME = "domya_admin";
+    const ADMIN_PASSWORD = "domya_secure_2026";
+    const recipients = ["agencydomya@gmail.com", "domyaadv@gmail.com"];
+
+    const subject = `🔐 بيانات دخول لوحة تحكم دوميا CRM`;
+    const body = `مرحباً فريق دوميا المميز،
+
+فيما يلي بيانات دخول لوحة تحكم إدارة الحجوزات (CRM) الخاصة بوكالة دوميا:
+
+• 👤 اسم المستخدم: ${ADMIN_USERNAME}
+• 🔑 كلمة المرور: ${ADMIN_PASSWORD}
+
+رابط لوحة التحكم: الصفحة الرئيسية ثم الضغط على "لوحة محمية، خاصة بالإدارة"
+
+⚠️ هذه البيانات سرية ولا يجب مشاركتها مع أي شخص خارج الفريق.
+
+مع خالص التحية،
+فريق وكالة دوميا
+agencydomya@gmail.com`;
+
+    const results = await Promise.allSettled(
+      recipients.map(email => sendRealEmail(email, subject, body))
+    );
+
+    const anySuccess = results.some(r => r.status === 'fulfilled');
+    if (anySuccess) {
+      console.log("[ForgotCredentials] Credentials email sent to agency.");
+      return res.json({ success: true, message: "تم إرسال بيانات الدخول إلى إيميل الوكالة بنجاح." });
+    } else {
+      console.error("[ForgotCredentials] All email attempts failed:", results);
+      return res.status(500).json({ error: "فشل إرسال البيانات. يرجى مراجعة إعدادات SMTP." });
+    }
+  } catch (err) {
+    console.error("[ForgotCredentials] Error:", err);
+    res.status(500).json({ error: "حدث خطأ أثناء محاولة إرسال البيانات." });
+  }
+});
+
 // Start server
 async function startServer() {
   // Integrate Vite for development (dynamic import to avoid bundling vite in production)
@@ -1331,8 +1372,35 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  app.listen(PORT, "0.0.0.0", async () => {
     console.log(`Server running at http://0.0.0.0:${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+    
+    // Send startup credentials email to agency
+    try {
+      const ADMIN_USERNAME = "domya_admin";
+      const ADMIN_PASSWORD = "domya_secure_2026";
+      const startupSubject = `🚀 تم تشغيل سيرفر دوميا — بيانات دخول CRM`;
+      const startupBody = `مرحباً فريق دوميا!
+
+تم تشغيل سيرفر CRM بنجاح في ${new Date().toLocaleString('ar-EG', { timeZone: 'Africa/Cairo' })}.
+
+بيانات دخول لوحة التحكم:
+• 👤 اسم المستخدم: ${ADMIN_USERNAME}
+• 🔑 كلمة المرور: ${ADMIN_PASSWORD}
+
+للدخول على اللوحة: ابحث عن "لوحة محمية، خاصة بالإدارة" في أسفل الصفحة الرئيسية.
+
+⚠️ بيانات سرية لا تشاركها،
+فريق دوميا`;
+
+      await Promise.allSettled([
+        sendRealEmail("agencydomya@gmail.com", startupSubject, startupBody),
+        sendRealEmail("domyaadv@gmail.com", startupSubject, startupBody)
+      ]);
+      console.log("[Startup] Credentials email sent to agency.");
+    } catch (err) {
+      console.warn("[Startup] Could not send credentials email:", err);
+    }
   });
 }
 

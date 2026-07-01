@@ -47,8 +47,8 @@ export default function BookingForm({ diagnosisRef, onSuccess, lang = 'ar', isMo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.specialty || !form.phone) {
-      setError(isEn ? "Please fill in the required fields: Name, Specialty, and Phone." : "برجاء ملء الحقول الإجبارية: الاسم، التخصص، ورقم الهاتف.");
+    if (!form.name || !form.specialty || !form.phone || !form.email) {
+      setError(isEn ? "Please fill in the required fields: Name, Specialty, Phone, and Email." : "برجاء ملء الحقول الإجبارية: الاسم، التخصص، رقم الهاتف، والبريد الإلكتروني.");
       return;
     }
 
@@ -266,7 +266,7 @@ export default function BookingForm({ diagnosisRef, onSuccess, lang = 'ar', isMo
               {/* Email */}
               <div className="space-y-1.5">
                 <label htmlFor="booking-email" className={labelClass}>
-                  {isEn ? "Email Address (Optional)" : "البريد الإلكتروني (اختياري)"}
+                  {isEn ? "Email Address *" : "البريد الإلكتروني *"}
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-600 pointer-events-none" />
@@ -274,6 +274,7 @@ export default function BookingForm({ diagnosisRef, onSuccess, lang = 'ar', isMo
                     type="email"
                     id="booking-email"
                     name="email"
+                    required
                     value={form.email}
                     onChange={handleInputChange}
                     placeholder="doctor@example.com"
