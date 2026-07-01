@@ -106,9 +106,6 @@ export default function App() {
     setMobileMenuOpen(false);
   };
 
-  const handleStartDiagnosis = () => {
-    scrollTo(diagnosisRef);
-  };
 
   const handleBookConsultation = () => {
     setIsBookingModalOpen(true);
@@ -364,7 +361,6 @@ export default function App() {
         <Hero 
           lang={lang}
           darkMode={darkMode}
-          onStartDiagnosis={handleStartDiagnosis} 
           onBookConsultation={handleBookConsultation} 
         />
 
@@ -387,7 +383,7 @@ export default function App() {
 
         {/* 3. Branding Symptoms check and Solutions grid */}
         <div ref={servicesRef}>
-          <Services lang={lang} />
+          <Services lang={lang} onBookConsultation={handleBookConsultation} />
         </div>
 
         {/* 5. Doctors cinematic Reels multimedia section */}
@@ -406,12 +402,12 @@ export default function App() {
 
         {/* Why Choose Us Section */}
         <div ref={whyChooseUsRef}>
-          <WhyChooseUs lang={lang} />
+          <WhyChooseUs lang={lang} onBookConsultation={handleBookConsultation} />
         </div>
 
         {/* Journey Section */}
         <div ref={journeyRef}>
-          <Journey lang={lang} />
+          <Journey lang={lang} onBookConsultation={handleBookConsultation} />
         </div>
 
         {/* FAQs Section */}

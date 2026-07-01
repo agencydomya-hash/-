@@ -5,13 +5,12 @@ import Logo from './Logo';
 import { translations } from '../translations';
 
 interface HeroProps {
-  onStartDiagnosis: () => void;
   onBookConsultation: () => void;
   lang?: 'ar' | 'en';
   darkMode?: boolean;
 }
 
-export default function Hero({ onStartDiagnosis, onBookConsultation, lang = 'ar', darkMode = false }: HeroProps) {
+export default function Hero({ onBookConsultation, lang = 'ar', darkMode = false }: HeroProps) {
   const t = translations[lang];
   const isEn = lang === 'en';
 

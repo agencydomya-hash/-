@@ -26,9 +26,10 @@ const getSteps = (isEn: boolean) => [
 
 interface JourneyProps {
   lang?: 'ar' | 'en';
+  onBookConsultation?: () => void;
 }
 
-export default function Journey({ lang = 'ar' }: JourneyProps) {
+export default function Journey({ lang = 'ar', onBookConsultation }: JourneyProps) {
   const isEn = lang === 'en';
   const steps = getSteps(isEn);
 
@@ -90,17 +91,14 @@ export default function Journey({ lang = 'ar' }: JourneyProps) {
         <div className="text-center mt-16 space-y-6" dir={isEn ? "ltr" : "rtl"}>
           <p className="text-base sm:text-lg font-bold text-[#2C3E50] dark:text-slate-355 max-w-xl mx-auto leading-relaxed">
             {isEn ? "This is the journey every successful doctor takes." : "هذه هي الرحلة التي يسلكها كل طبيب ناجح."} <br />
-            {isEn ? "Want to start your journey today? Discover where you stand now using our audit tool ↓" : "تريد أن تبدأ رحلتك اليوم؟ اكتشف أين أنت الآن من خلال التشخيص الفوري ↓"}
+            {isEn ? "Want to start your journey today? Book a free consultation now." : "تريد أن تبدأ رحلتك اليوم؟ احجز استشارتك المجانية دلوقتي ↓"}
           </p>
           <button
-            onClick={() => {
-              const diagSection = document.getElementById("diagnosis-section");
-              if (diagSection) diagSection.scrollIntoView({ behavior: "smooth" });
-            }}
+            onClick={() => onBookConsultation?.()}
             className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition duration-300 shadow-lg shadow-orange-500/20 text-base cursor-pointer"
             style={{ borderRadius: '8px' }}
           >
-            {isEn ? "Start Free Audit 🩺" : "ابدأ التشخيص الآن 🩺"}
+            {isEn ? "Book Free Consultation 📞" : "احجز استشارتك المجانية 📞"}
           </button>
         </div>
 

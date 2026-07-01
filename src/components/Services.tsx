@@ -95,9 +95,10 @@ const getIntegratedServices = (isEn: boolean) => [
 
 interface ServicesProps {
   lang?: 'ar' | 'en';
+  onBookConsultation?: () => void;
 }
 
-export default function Services({ lang = 'ar' }: ServicesProps) {
+export default function Services({ lang = 'ar', onBookConsultation }: ServicesProps) {
   const t = translations[lang];
   const isEn = lang === 'en';
 
@@ -229,19 +230,16 @@ export default function Services({ lang = 'ar' }: ServicesProps) {
           <div className="mt-16 pt-8 border-t border-slate-100 dark:border-slate-800 text-center space-y-6" dir={isEn ? "ltr" : "rtl"}>
             <p className="text-base sm:text-lg font-bold text-[#2C3E50] dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
               {isEn 
-                ? "Which of these services does your clinic need most? Answer 3 questions to find out." 
-                : "أي من هذه الخدمات تحتاجها أكثر؟ أجب عن 3 أسئلة وسنخبرك بالضبط ما تحتاج ↓"
+                ? "Ready to grow your clinic? Book a free consultation now." 
+                : "جاهز تكبّر عيادتك؟ احجز استشارتك المجانية دلوقتي ↓"
               }
             </p>
             <button
-              onClick={() => {
-                const diagSection = document.getElementById("diagnosis-section");
-                if (diagSection) diagSection.scrollIntoView({ behavior: "smooth" });
-              }}
+              onClick={() => onBookConsultation?.()}
               className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition duration-300 shadow-lg shadow-orange-500/20 text-base cursor-pointer"
               style={{ borderRadius: '8px' }}
             >
-              {isEn ? "Start Free Audit 🩺" : "ابدأ التشخيص الآن 🩺"}
+              {isEn ? "Book Free Consultation 📞" : "احجز استشارتك المجانية 📞"}
             </button>
           </div>
 

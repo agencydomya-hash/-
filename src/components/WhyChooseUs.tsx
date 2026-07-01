@@ -26,9 +26,10 @@ const getCards = (isEn: boolean) => [
 
 interface WhyChooseUsProps {
   lang?: 'ar' | 'en';
+  onBookConsultation?: () => void;
 }
 
-export default function WhyChooseUs({ lang = 'ar' }: WhyChooseUsProps) {
+export default function WhyChooseUs({ lang = 'ar', onBookConsultation }: WhyChooseUsProps) {
   const isEn = lang === 'en';
   const cards = getCards(isEn);
 
@@ -75,17 +76,14 @@ export default function WhyChooseUs({ lang = 'ar' }: WhyChooseUsProps) {
         <div className="text-center mt-16 space-y-6" dir={isEn ? "ltr" : "rtl"}>
           <p className="text-base sm:text-lg font-bold text-[#2C3E50] dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
             {isEn ? "Are you ready to join them?" : "هل أنت مستعد للانضمام إليهم؟"} <br />
-            {isEn ? "Start your diagnosis now and discover your clinic's growth blueprint ↓" : "ابدأ التشخيص الفوري الآن واكتشف خطتك المخصصة لنمو عيادتك ↓"}
+            {isEn ? "Book your free consultation and discover your clinic's growth blueprint." : "احجز استشارتك المجانية واكتشف خطتك المخصصة لنمو عيادتك ↓"}
           </p>
           <button
-            onClick={() => {
-              const diagSection = document.getElementById("diagnosis-section");
-              if (diagSection) diagSection.scrollIntoView({ behavior: "smooth" });
-            }}
+            onClick={() => onBookConsultation?.()}
             className="px-8 py-4 bg-[#FF6B35] hover:bg-[#E55A2B] text-white font-bold rounded-xl transition duration-300 shadow-lg shadow-orange-500/20 text-base cursor-pointer"
             style={{ borderRadius: '8px' }}
           >
-            {isEn ? "Start Free Audit 🩺" : "ابدأ التشخيص الآن 🩺"}
+            {isEn ? "Book Free Consultation 📞" : "احجز استشارتك المجانية 📞"}
           </button>
         </div>
 
